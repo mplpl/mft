@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   uuid = "65CE74B5-D966-4016-8AF3-9DC6B835989E"
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9DDE8B0C-7F7D-4BCC-8CB9-4377FE16735F"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "mlft/SftpConnection.swift"
+            startingColumnNumber = "13"
+            endingColumnNumber = "13"
+            startingLineNumber = "535"
+            endingLineNumber = "535"
+            landmarkName = "write(stream:toFileAtPath:append:progress:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>

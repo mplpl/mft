@@ -1,0 +1,30 @@
+/* No comment provided by engineer. */
+"Authentication failed" = "Authentifizierung fehlgeschlagen";
+
+/* No comment provided by engineer. */
+"Authentication failed. This server does not support password authentication. Supported methods: %@." = "Authentifizierung fehlgeschlagen.Dieser Server unterstützt keine Kennwortauthentifizierung. Unterstützte Methoden: %@.";
+
+/* No comment provided by engineer. */
+"Authentication failed. This server does not support publickey authentication. Supported methods: %@." = "Authentifizierung fehlgeschlagen. Dieser Server unterstützt keine Publickey-Authentifizierung. Unterstützte Methoden: %@.";
+
+/* No comment provided by engineer. */
+"Canceled" = "Vorgang vom Benutzer abgebrochen";
+
+/* No comment provided by engineer. */
+"Error" = "Fehler";
+
+/* No comment provided by engineer. */
+"No bytes available in the input stream" = "Keine Bytes im Eingabestream verfügbar";
+
+/* No comment provided by engineer. */
+"No SFTP session" = "Keine SFTP-Sitzung";
+
+/* No comment provided by engineer. */
+"Read error" = "Lese fehler";
+
+/* No comment provided by engineer. */
+"Unable to open the input stream" = "Der Eingabestream kann nicht geöffnet werden";
+
+/* No comment provided by engineer. */
+"Write error" = "Fehler beim Schreiben";
+

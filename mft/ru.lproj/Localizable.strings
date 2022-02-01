@@ -1,0 +1,30 @@
+/* No comment provided by engineer. */
+"Authentication failed" = "Ошибка аутентификации";
+
+/* No comment provided by engineer. */
+"Authentication failed. This server does not support password authentication. Supported methods: %@." = "Ошибка во время аутентификация. Этот сервер не поддерживает аутентификацию по паролю. Поддерживаемые способы: %@.";
+
+/* No comment provided by engineer. */
+"Authentication failed. This server does not support publickey authentication. Supported methods: %@." = "Ошибка во время аутентификация. Этот сервер не поддерживает аутентификацию с открытым ключом. Поддерживаемые способы: %@.";
+
+/* No comment provided by engineer. */
+"Canceled" = "Операция отменена пользователем";
+
+/* No comment provided by engineer. */
+"Error" = "Ошибка";
+
+/* No comment provided by engineer. */
+"No bytes available in the input stream" = "Нет доступных байтов во входном потоке";
+
+/* No comment provided by engineer. */
+"No SFTP session" = "Нет сеанса SFTP";
+
+/* No comment provided by engineer. */
+"Read error" = "Ошибка чтения";
+
+/* No comment provided by engineer. */
+"Unable to open the input stream" = "Не удалось открыть входной поток";
+
+/* No comment provided by engineer. */
+"Write error" = "Ошибка записи";
+

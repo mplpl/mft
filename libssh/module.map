@@ -1,0 +1,9 @@
+module libssh {
+    header "include/libssh/libssh.h"
+    header "include/libssh/sftp.h"
+    header "include/libssh/misc.h"
+    header "include/libssh/knownhosts.h"
+    export *
+}
+
+ 
