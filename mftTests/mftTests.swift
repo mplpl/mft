@@ -300,6 +300,10 @@ class mftTests: XCTestCase {
         XCTAssert(sftp.knownHostStatus(inFile: "/tmp/mft/known_hosts") == .KNOWN_HOSTS_OK)
     }
     
+    func testFingerprintHash() throws {
+        XCTAssertNoThrow(try sftp.fingerprintHash())
+    }
+    
     func testCopy() throws {
         let testItemSrc = "/tmp/mft/copy_test_src"
         let testItemDest = "/tmp/mft/copy_test_dest"

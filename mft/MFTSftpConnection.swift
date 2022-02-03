@@ -823,7 +823,7 @@ import NSString_iconv
     
     public func fingerprintHash() throws -> String {
         
-        if sftp_session == nil {
+        if session == nil {
             throw error(code: .no_session)
         }
         
@@ -840,7 +840,7 @@ import NSString_iconv
                     return hexaS
                 }
             }
-            return String(cString: pkHash!)
+            return ""
         }
         return ""
     }
