@@ -13,7 +13,8 @@ import NSString_iconv
 @objc public enum MFTKnownHostStatus: Int {
     case KNOWN_HOSTS_ERROR = -2, KNOWN_HOSTS_NOT_FOUND = -1,
     KNOWN_HOSTS_UNKNOWN = 0, KNOWN_HOSTS_OK, KNOWN_HOSTS_CHANGED,
-    KNOWN_HOSTS_OTHER
+    KNOWN_HOSTS_OTHER,
+    NO_SESSION = 100
 }
 
 @objcMembers public class MFTFilesystemStats: NSObject {
@@ -36,6 +37,7 @@ import NSString_iconv
          local_open_error_for_reading,
          local_open_error_for_writing,
          local_nothing_to_read,
+         wrong_keyfile,
          canceled = 999
 }
 
@@ -91,10 +93,7 @@ import NSString_iconv
     }
     
     public func connect() throws {
-        
         try _connect()
-        try _authenticate()
-        try _sftpSession()
     }
     
     func _connect() throws {
@@ -130,6 +129,16 @@ import NSString_iconv
             session = nil
             throw err
         }
+    }
+    
+    public func authenticate() throws {
+        
+        if session == nil {
+            throw error(code: .no_session)
+        }
+        
+        try _authenticate()
+        try _sftpSession()
     }
     
     func _intToAuthMethodsList(_ supported: UInt32) -> String {
@@ -181,7 +190,18 @@ import NSString_iconv
                     session = nil
                     throw error(code: .authentication_failed)
                 } else {
-                    auth = ssh_userauth_privatekey_file(session, self.username, self.prvKeyPath, self.passphrase)
+                    let pk = UnsafeMutablePointer<ssh_key?>.allocate(capacity: 1)
+                    defer {pk.deallocate()}
+                    auth = ssh_pki_import_privkey_file(self.prvKeyPath, self.passphrase, nil, nil, pk)
+                    if auth == 0 {
+                        auth = ssh_userauth_publickey(session, nil, pk.pointee)
+                        ssh_key_free(pk.pointee)
+                    } else {
+                        ssh_disconnect(session)
+                        ssh_free(session)
+                        session = nil
+                        throw error(code: .wrong_keyfile)
+                    }
                 }
             } else {
                 ssh_disconnect(session)
@@ -354,6 +374,10 @@ import NSString_iconv
     
     public func infoForFile(atPath: String) throws -> MFTSftpItem {
         
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
+        
         let path: String
         if atPath == "." {
             let p = sftp_canonicalize_path(sftp_session, ".")
@@ -390,6 +414,10 @@ import NSString_iconv
     
     public func effectiveTarget(forPath path:String) throws -> String {
         
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
+        
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
@@ -404,6 +432,10 @@ import NSString_iconv
     
     public func createDirectory(atPath path: String) throws {
         
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
+        
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
@@ -413,6 +445,10 @@ import NSString_iconv
     }
     
     public func createSymbolicLink(atPath path: String, withDestinationPath destPath:String) throws {
+        
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -427,6 +463,10 @@ import NSString_iconv
 
     public func removeDirectory(atPath path: String) throws {
         
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
+        
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
@@ -436,6 +476,10 @@ import NSString_iconv
     }
     
     public func removeFile(atPath path: String) throws {
+        
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -449,6 +493,10 @@ import NSString_iconv
     
     public func contents(atPath path: String, toStream outputStream:OutputStream, fromPosition pos:UInt64,
                   progress:((UInt64, UInt64) -> (Bool))?) throws {
+        
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -507,6 +555,10 @@ import NSString_iconv
     
     public func write(stream inputStream: InputStream, toFileAtPath path: String, append:Bool,
                       progress:((UInt64) -> (Bool))?) throws {
+        
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -579,6 +631,10 @@ import NSString_iconv
     
     public func copyItem(atPath fromPath: String, toFileAtPath toPath:String, progress:((UInt64, UInt64) -> (Bool))?) throws {
         
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
+        
         let fromPathC = cString(for: fromPath)
         defer {fromPathC.deallocate()}
         
@@ -638,6 +694,10 @@ import NSString_iconv
     
     public func moveItem(atPath: String, toPath:String) throws {
         
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
+        
         let atPathC = cString(for: atPath)
         defer {atPathC.deallocate()}
         
@@ -652,6 +712,10 @@ import NSString_iconv
     // MARK: - Setting attributes
     
     public func set(modificationTime mtime:Date?, accessTime atime:Date?, forPath path:String) throws {
+        
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -676,6 +740,10 @@ import NSString_iconv
     
     public func set(permissions:UInt32, forPath path:String) throws {
         
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
+        
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
@@ -691,6 +759,10 @@ import NSString_iconv
     // MARK: - Filesystem info
     
     public func filesystemStats(forPath path: String) throws -> MFTFilesystemStats {
+        
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -710,6 +782,10 @@ import NSString_iconv
     
     public func knownHostStatus(inFile path:String) -> MFTKnownHostStatus {
      
+        if session == nil {
+            return .NO_SESSION
+        }
+        
         var entry: UnsafeMutablePointer<ssh_knownhosts_entry>?
         let res = ssh_session_get_known_hosts_entry_file(session, path, &entry)
         defer {
@@ -720,8 +796,12 @@ import NSString_iconv
         return MFTKnownHostStatus(rawValue: Int(res.rawValue)) ?? .KNOWN_HOSTS_UNKNOWN
     }
     
-    public func addKnownHostName(toFile path: String) -> Bool {
+    public func addKnownHostName(toFile path: String) throws {
     
+        if session == nil {
+            throw error(code: .no_session)
+        }
+        
         if knownHostStatus(inFile: path) != .KNOWN_HOSTS_OK {
             var entry: UnsafeMutablePointer<Int8>?
             if ssh_session_export_known_hosts_entry(session, &entry) == 0 {
@@ -730,15 +810,22 @@ import NSString_iconv
                 if let ostream = OutputStream(toFileAtPath: path, append: true) {
                     ostream.open()
                     defer { ostream.close() }
-                    return ostream.write([UInt8](s.utf8), maxLength: s.count) > 0
+                    if ostream.write([UInt8](s.utf8), maxLength: s.count) > 0 {
+                        // done OK
+                        return
+                    }
+                    throw error(code: .local_write_error)
                 }
             }
-            return false
+            throw error_ssh()
         }
-        return true
     }
     
-    public func fingerprintHash() -> String {
+    public func fingerprintHash() throws -> String {
+        
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
         
         var key: ssh_key?
         if ssh_get_server_publickey(session, &key) == 0 {
@@ -797,7 +884,7 @@ import NSString_iconv
     }
     
     func error(code: MFTErrorCode, msg: String) -> NSError {
-        return NSError(domain: "mlft", code: code.rawValue, userInfo: [NSLocalizedDescriptionKey: msg])
+        return NSError(domain: "mft", code: code.rawValue, userInfo: [NSLocalizedDescriptionKey: msg])
     }
     
     func errorCancelled() -> NSError {
@@ -838,6 +925,9 @@ import NSString_iconv
             
         case .local_nothing_to_read:
             return NSLocalizedString("No bytes available in the input stream", comment: "")
+            
+        case .wrong_keyfile:
+            return NSLocalizedString("Wrong keyfile format or wrong passphrase", comment: "")
             
         case .canceled:
             return NSLocalizedString("Canceled", comment: "")

@@ -1,6 +1,6 @@
 //
-//  mlftTests.swift
-//  mlftTests
+//  mftTests.swift
+//  mftTests
 //
 //  Created by Marcin Labenski on 28/01/2022.
 //
@@ -13,17 +13,18 @@ class mftTests: XCTestCase {
     var sftp: MFTSftpConnection!
 
     override func setUpWithError() throws {
-        try FileManager.default.createDirectory(atPath: "/tmp/mlft", withIntermediateDirectories: true, attributes: [:])
+        try FileManager.default.createDirectory(atPath: "/tmp/mft", withIntermediateDirectories: true, attributes: [:])
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
                               username: "mpl",
                               prvKeyPath: "/Users/mpl/.ssh/id_rsa",
                               passphrase: "")
         XCTAssertNoThrow(try sftp.connect())
+        XCTAssertNoThrow(try sftp.authenticate())
     }
 
     override func tearDownWithError() throws {
-        try FileManager.default.removeItem(atPath: "/tmp/mlft")
+        try FileManager.default.removeItem(atPath: "/tmp/mft")
     }
     
     func testConnect() throws {
@@ -33,12 +34,103 @@ class mftTests: XCTestCase {
     }
     
     func testConnectFailed() throws {
-        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+        sftp = MFTSftpConnection(hostname: "127.0.0.222",
                               port: 22,
                               username: "mpl",
                               prvKeyPath: "/Users/mpl/.ssh/id_rsaXXXX",
                               passphrase: "")
         XCTAssertThrowsError(try sftp.connect())
+    }
+
+    func testAuthFailed() throws {
+        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                              port: 22,
+                              username: "mpl",
+                              prvKeyPath: "/Users/mpl/.ssh/id_rsaXXXX",
+                              passphrase: "")
+        XCTAssertNoThrow(try sftp.connect())
+        XCTAssertThrowsError(try sftp.authenticate())
+    }
+    
+    func testAuthKeyPassphrase() throws {
+        // for this test to work:
+        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/mpl/.ssh/id_rsa_pass
+        // type 'test' when asked for passphrase
+        // ssh-copy-id -i /Users/mpl/.ssh/id_rsa_pass mpl@127.0.0.1
+        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                              port: 22,
+                              username: "mpl",
+                              prvKeyPath: "/Users/mpl/.ssh/id_rsa_pass",
+                              passphrase: "test")
+        XCTAssertNoThrow(try sftp.connect())
+        XCTAssertNoThrow(try sftp.authenticate())
+    }
+    
+    func testAuthKeyPassphraseWrongFile() throws {
+        let testItem = "/tmp/mft/fake_key"
+        FileManager.default.createFile(atPath: testItem, contents: nil, attributes: [:])
+        
+        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                              port: 22,
+                              username: "mpl",
+                              prvKeyPath: testItem,
+                              passphrase: "aaaa")
+        XCTAssertNoThrow(try sftp.connect())
+        XCTAssertThrowsError(try sftp.authenticate())
+    }
+    
+    func testAuthKeyPassphraseNoFile() throws {
+        let testItem = "/tmp/mft/fake_key"
+        
+        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                              port: 22,
+                              username: "mpl",
+                              prvKeyPath: testItem,
+                              passphrase: "aaaa")
+        XCTAssertNoThrow(try sftp.connect())
+        XCTAssertThrowsError(try sftp.authenticate())
+    }
+    
+    func testAuthKeyPassphraseNoPassphraseGiven() throws {
+        // for this test to work:
+        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/mpl/.ssh/id_rsa_pass
+        // type 'test' when asked for passphrase
+        // ssh-copy-id -i /Users/mpl/.ssh/id_rsa_pass mpl@127.0.0.1
+        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                              port: 22,
+                              username: "mpl",
+                              prvKeyPath: "/Users/mpl/.ssh/id_rsa_pass",
+                              passphrase: "")
+        XCTAssertNoThrow(try sftp.connect())
+        XCTAssertThrowsError(try sftp.authenticate())
+    }
+    
+    func testAuthKeyPassphraseWrongPassphrase() throws {
+        // for this test to work:
+        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/mpl/.ssh/id_rsa_pass
+        // type 'test' when asked for passphrase
+        // ssh-copy-id -i /Users/mpl/.ssh/id_rsa_pass mpl@127.0.0.1
+        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                              port: 22,
+                              username: "mpl",
+                              prvKeyPath: "/Users/mpl/.ssh/id_rsa_pass",
+                              passphrase: "aaaaa")
+        XCTAssertNoThrow(try sftp.connect())
+        XCTAssertThrowsError(try sftp.authenticate())
+    }
+    
+    func testAuthKeyEd25519() throws {
+        // for this test to work:
+        // ssh-keygen ssh-keygen -t ed25519 -C "foo@bar.baz” /Users/mpl/.ssh/id_ed25519
+        // type 'test' when asked for passphrase
+        // ssh-copy-id -i /Users/mpl/.ssh/id_ed25519 mpl@127.0.0.1
+        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                              port: 22,
+                              username: "mpl",
+                              prvKeyPath: "/Users/mpl/.ssh/id_ed25519",
+                              passphrase: "test")
+        XCTAssertNoThrow(try sftp.connect())
+        XCTAssertNoThrow(try sftp.authenticate())
     }
     
     func testList() throws {
@@ -59,7 +151,7 @@ class mftTests: XCTestCase {
     }
 
     func testDownload() throws {
-        let testItem = "/tmp/mlft/download_test"
+        let testItem = "/tmp/mft/download_test"
         
         let outStream = OutputStream(toFileAtPath: testItem, append: false)
         XCTAssert(outStream != nil)
@@ -78,7 +170,7 @@ class mftTests: XCTestCase {
     }
     
     func testDownloadWithResume() throws {
-        let testItem = "/tmp/mlft/downloadr_test"
+        let testItem = "/tmp/mft/downloadr_test"
         
         let outStream2 = OutputStream(toFileAtPath: testItem, append: false)
         XCTAssert(outStream2 != nil)
@@ -97,7 +189,7 @@ class mftTests: XCTestCase {
     }
     
     func testUpload() throws {
-        let testItem = "/tmp/mlft/upload_test"
+        let testItem = "/tmp/mft/upload_test"
      
         let inStream = InputStream(fileAtPath: "/usr/bin/ssh")
         XCTAssert(inStream != nil)
@@ -114,13 +206,13 @@ class mftTests: XCTestCase {
     }
     
     func testMkdir() throws {
-        let testItem = "/tmp/mlft/mkdir_test"
+        let testItem = "/tmp/mft/mkdir_test"
         XCTAssertNoThrow(try sftp.createDirectory(atPath: testItem))
         XCTAssert(FileManager.default.fileExists(atPath: testItem))
     }
     
     func testRmdir() throws {
-        let testItem = "/tmp/mlft/rmdir_test"
+        let testItem = "/tmp/mft/rmdir_test"
         
         try FileManager.default.createDirectory(atPath: testItem, withIntermediateDirectories: true, attributes: [:])
         XCTAssert(FileManager.default.fileExists(atPath: testItem))
@@ -130,7 +222,7 @@ class mftTests: XCTestCase {
     }
     
     func testRm() throws {
-        let testItem = "/tmp/mlft/rm_test"
+        let testItem = "/tmp/mft/rm_test"
         
         FileManager.default.createFile(atPath: testItem, contents: nil, attributes: [:])
         
@@ -141,8 +233,8 @@ class mftTests: XCTestCase {
     }
     
     func testLn() throws {
-        let testItem = "/tmp/mlft/ln_test"
-        let testItemDest = "/tmp/mlft/ln_test_dest"
+        let testItem = "/tmp/mft/ln_test"
+        let testItemDest = "/tmp/mft/ln_test_dest"
         
         FileManager.default.createFile(atPath: testItemDest, contents: nil, attributes: [:])
         XCTAssert(FileManager.default.fileExists(atPath: testItemDest))
@@ -153,8 +245,8 @@ class mftTests: XCTestCase {
     }
     
     func testLnRelative() throws {
-        let testItem = "/tmp/mlft/lnr_test"
-        let testItemDest = "/tmp/mlft/lnr_test_dest"
+        let testItem = "/tmp/mft/lnr_test"
+        let testItemDest = "/tmp/mft/lnr_test_dest"
         
         FileManager.default.createFile(atPath: testItemDest, contents: nil, attributes: [:])
         XCTAssert(FileManager.default.fileExists(atPath: testItemDest))
@@ -165,8 +257,8 @@ class mftTests: XCTestCase {
     }
     
     func testMoveDir() throws {
-        let testItemSrc = "/tmp/mlft/mvd_test_src"
-        let testItemDest = "/tmp/mlft/mvd_test_dest"
+        let testItemSrc = "/tmp/mft/mvd_test_src"
+        let testItemDest = "/tmp/mft/mvd_test_dest"
         
         try FileManager.default.createDirectory(atPath: testItemSrc, withIntermediateDirectories: true, attributes: [:])
         
@@ -176,8 +268,8 @@ class mftTests: XCTestCase {
     }
     
     func testMoveFile() throws {
-        let testItemSrc = "/tmp/mlft/mvf_test_src"
-        let testItemDest = "/tmp/mlft/mvf_test_dest"
+        let testItemSrc = "/tmp/mft/mvf_test_src"
+        let testItemDest = "/tmp/mft/mvf_test_dest"
         FileManager.default.createFile(atPath: testItemSrc, contents: nil, attributes: [:])
         XCTAssertNoThrow(try sftp.moveItem(atPath: testItemSrc, toPath: testItemDest))
         XCTAssert(FileManager.default.fileExists(atPath: testItemSrc) == false)
@@ -185,7 +277,7 @@ class mftTests: XCTestCase {
     }
     
     func testSetModTime() throws {
-        let testItem = "/tmp/mlft/mtime_test"
+        let testItem = "/tmp/mft/mtime_test"
         FileManager.default.createFile(atPath: testItem, contents: nil, attributes: [:])
         let mtime = Date(timeIntervalSinceReferenceDate: 123456789.0)
         XCTAssertNoThrow(try sftp.set(modificationTime: mtime, accessTime: nil, forPath: testItem))
@@ -194,7 +286,7 @@ class mftTests: XCTestCase {
     }
     
     func testSetPermissions() throws {
-        let testItem = "/tmp/mlft/perms_test"
+        let testItem = "/tmp/mft/perms_test"
         FileManager.default.createFile(atPath: testItem, contents: nil, attributes: [:])
         let permToSet: UInt32 = 0o666
         XCTAssertNoThrow(try sftp.set(permissions: permToSet, forPath:testItem))
@@ -203,14 +295,14 @@ class mftTests: XCTestCase {
     }
     
     func testKnownHostsStatus() throws {
-        XCTAssert(sftp.knownHostStatus(inFile: "/tmp/mlft/known_hosts") != .KNOWN_HOSTS_OK)
-        XCTAssert(sftp.addKnownHostName(toFile: "/tmp/mlft/known_hosts"))
-        XCTAssert(sftp.knownHostStatus(inFile: "/tmp/mlft/known_hosts") == .KNOWN_HOSTS_OK)
+        XCTAssert(sftp.knownHostStatus(inFile: "/tmp/mft/known_hosts") != .KNOWN_HOSTS_OK)
+        XCTAssertNoThrow(try sftp.addKnownHostName(toFile: "/tmp/mft/known_hosts"))
+        XCTAssert(sftp.knownHostStatus(inFile: "/tmp/mft/known_hosts") == .KNOWN_HOSTS_OK)
     }
     
     func testCopy() throws {
-        let testItemSrc = "/tmp/mlft/copy_test_src"
-        let testItemDest = "/tmp/mlft/copy_test_dest"
+        let testItemSrc = "/tmp/mft/copy_test_src"
+        let testItemDest = "/tmp/mft/copy_test_dest"
         let data = Data(repeating: 9, count: 2000000)
         FileManager.default.createFile(atPath: testItemSrc, contents: data, attributes: [:])
         XCTAssertNoThrow(try sftp.copyItem(atPath: testItemSrc, toFileAtPath: testItemDest) { copied, total in

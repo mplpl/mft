@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-//! Project version number for mlft.
-FOUNDATION_EXPORT double mlftVersionNumber;
+//! Project version number for mft.
+FOUNDATION_EXPORT double mftVersionNumber;
 
-//! Project version string for mlft.
-FOUNDATION_EXPORT const unsigned char mlftVersionString[];
+//! Project version string for mft.
+FOUNDATION_EXPORT const unsigned char mftVersionString[];

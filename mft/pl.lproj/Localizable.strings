@@ -28,3 +28,4 @@
 /* No comment provided by engineer. */
 "Write error" = "Błąd zapisu";
 
+"Wrong keyfile format or wrong passphrase" = "Nieprawidłowy format pliku klucza lub nieprawidłowe hasło";

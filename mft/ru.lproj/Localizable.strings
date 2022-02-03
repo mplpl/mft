@@ -28,3 +28,4 @@
 /* No comment provided by engineer. */
 "Write error" = "Ошибка записи";
 
+"Wrong keyfile format or wrong passphrase" = "Неверный формат ключевого файла или неправильная парольная фраза";
