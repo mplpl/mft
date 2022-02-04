@@ -359,4 +359,16 @@ class mftTests: XCTestCase {
             return true
         }))
     }
+    
+    func testConnectionInfo() throws {
+        var info = MFTSftpConnectionInfo()
+        XCTAssertNoThrow(info = try sftp.connectionInfo())
+        NSLog("Protocol version: %d", info.protocolVerions)
+        NSLog("Auth methods: %@", info.authMethods.joined(separator: ","))
+        NSLog("Server banner: %@", info.serverBanner)
+        NSLog("Issue banner: %@", info.issueBanner)
+        NSLog("Cipher in: %@ out: %@", info.cipherIn, info.cipherOut)
+        NSLog("HMAC in: %@ out: %@", info.hmacIn, info.hmacOut)
+        NSLog("KEX alg: %@", info.kexAlg)
+    }
 }

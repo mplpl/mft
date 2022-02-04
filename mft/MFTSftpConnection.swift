@@ -41,6 +41,18 @@ import NSString_iconv
          canceled = 999
 }
 
+@objc public class MFTSftpConnectionInfo: NSObject {
+    public var serverBanner = ""
+    public var issueBanner = ""
+    public var cipherIn = ""
+    public var cipherOut = ""
+    public var hmacIn = ""
+    public var hmacOut = ""
+    public var kexAlg = ""
+    public var authMethods = [String]()
+    public var protocolVerions: Int32 = -1
+}
+
 @objcMembers public class MFTSftpConnection: NSObject {
 
     let hostname: String
@@ -159,7 +171,7 @@ import NSString_iconv
         try _sftpSession()
     }
     
-    func _intToAuthMethodsList(_ supported: UInt32) -> String {
+    func _intToAuthMethodsList(_ supported: UInt32) -> [String] {
         
         var methods = [String]()
         
@@ -184,7 +196,7 @@ import NSString_iconv
         if supported  == SSH_AUTH_METHOD_UNKNOWN {
             methods.append("unknown")
         }
-        return methods.joined(separator: ",")
+        return methods
     }
     
     func _authenticate() throws {
@@ -225,7 +237,8 @@ import NSString_iconv
                 ssh_disconnect(session)
                 ssh_free(session)
                 session = nil
-                let msg = String(format: message(forError: .no_pubkey_method), _intToAuthMethodsList(supported))
+                let msg = String(format: message(forError: .no_pubkey_method),
+                                 _intToAuthMethodsList(supported).joined(separator: ","))
                 throw error(code: .no_pubkey_method, msg: msg)
             }
         } else {
@@ -259,7 +272,8 @@ import NSString_iconv
                 ssh_disconnect(session)
                 ssh_free(session)
                 session = nil
-                let msg = String(format: message(forError: .no_pubkey_method), _intToAuthMethodsList(supported))
+                let msg = String(format: message(forError: .no_pubkey_method),
+                                 _intToAuthMethodsList(supported).joined(separator: ","))
                 throw error(code: .no_password_method, msg: msg)
             }
         }
@@ -332,6 +346,45 @@ import NSString_iconv
                 ssh_options_set(session, SSH_OPTIONS_TIMEOUT, String(newValue))
             }
         }
+    }
+        
+    func connectionInfo() throws -> MFTSftpConnectionInfo {
+    
+        if session == nil {
+            throw error(code: .no_session)
+        }
+        
+        let ret = MFTSftpConnectionInfo()
+        
+        if let sbanner = ssh_get_serverbanner(session) {
+            ret.serverBanner = String(cString: sbanner)
+        }
+        if let ibanner = ssh_get_issue_banner(session) {
+            ret.issueBanner = String(cString: ibanner)
+        }
+        
+        if let cipher_in = ssh_get_cipher_in(session) {
+            ret.cipherIn = String(cString: cipher_in)
+        }
+        if let cipher_out = ssh_get_cipher_out(session) {
+            ret.cipherOut = String(cString: cipher_out)
+        }
+        if let hmac_in = ssh_get_hmac_in(session) {
+            ret.hmacIn = String(cString: hmac_in)
+        }
+        if let hmac_out = ssh_get_hmac_out(session) {
+            ret.hmacOut = String(cString: hmac_out)
+        }
+        if let kex = ssh_get_kex_algo(session) {
+            ret.kexAlg = String(cString: kex)
+        }
+        
+        let supported = UInt32(ssh_userauth_list(session, nil))
+        ret.authMethods = _intToAuthMethodsList(supported)
+        
+        ret.protocolVerions = ssh_get_version(session)
+        
+        return ret;
     }
     
     // MARK: - Directory listing and items info
