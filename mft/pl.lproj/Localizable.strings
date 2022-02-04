@@ -14,7 +14,7 @@
 "Error" = "Błąd";
 
 /* No comment provided by engineer. */
-"No bytes available in the input stream" = "Strumień wejściowy jest pusty";
+"You don't have permission to read the file" = "Nie masz uprawnien do odczytywanie tego pliku";
 
 /* No comment provided by engineer. */
 "No SFTP session" = "Brak sesji SFTP";
@@ -24,6 +24,8 @@
 
 /* No comment provided by engineer. */
 "Unable to open the input stream" = "Nie można otworzyć strumienia wejściowego";
+
+"Unable to open the output stream" = "Nie można otworzyć strumienia wyjściowego";
 
 /* No comment provided by engineer. */
 "Write error" = "Błąd zapisu";

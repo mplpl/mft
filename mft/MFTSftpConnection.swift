@@ -36,7 +36,7 @@ import NSString_iconv
          local_write_error,
          local_open_error_for_reading,
          local_open_error_for_writing,
-         local_nothing_to_read,
+         local_file_not_readable,
          wrong_keyfile,
          canceled = 999
 }
@@ -567,9 +567,12 @@ import NSString_iconv
             inputStream.open()
         }
         
-        defer {
-            inputStream.close()
+        defer {inputStream.close()}
+        
+        if inputStream.hasBytesAvailable == false {
+            throw error(code: .local_read_error)
         }
+        
         
         var flags : Int32 = O_CREAT|O_RDWR;
         if append == false {
@@ -584,7 +587,7 @@ import NSString_iconv
                 let fileInfo = try infoForFile(atPath: path)
                 inputStream.setProperty(fileInfo.size, forKey: .fileCurrentOffsetKey)
                 if inputStream.hasBytesAvailable == false {
-                    throw error(code: .local_nothing_to_read)
+                    throw error(code: .local_read_error)
                 }
                 sftp_seek64(file, fileInfo.size)
             }
@@ -849,6 +852,9 @@ import NSString_iconv
     // MARK: - Auxilary convinience functions
     
     public func resumeFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
+        if FileManager.default.isReadableFile(atPath: path) == false {
+            throw error(code: .local_file_not_readable)
+        }
         let istream = InputStream(fileAtPath: path)
         if istream == nil {
             throw error(code: .local_open_error_for_reading)
@@ -857,6 +863,9 @@ import NSString_iconv
     }
     
     public func writeFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
+        if FileManager.default.isReadableFile(atPath: path) == false {
+            throw error(code: .local_file_not_readable)
+        }
         let istream = InputStream(fileAtPath: path)
         if istream == nil {
             throw error(code: .local_open_error_for_writing)
@@ -921,10 +930,10 @@ import NSString_iconv
             return NSLocalizedString("Unable to open the input stream", comment: "")
             
         case .local_open_error_for_writing:
-            return NSLocalizedString("Unable to open the input stream", comment: "")
+            return NSLocalizedString("Unable to open the output stream", comment: "")
             
-        case .local_nothing_to_read:
-            return NSLocalizedString("No bytes available in the input stream", comment: "")
+        case .local_file_not_readable:
+            return NSLocalizedString("You don't have permission to read the file", comment: "")
             
         case .wrong_keyfile:
             return NSLocalizedString("Wrong keyfile format or wrong passphrase", comment: "")

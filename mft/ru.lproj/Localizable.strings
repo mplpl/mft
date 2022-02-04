@@ -14,7 +14,7 @@
 "Error" = "Ошибка";
 
 /* No comment provided by engineer. */
-"No bytes available in the input stream" = "Нет доступных байтов во входном потоке";
+"You don't have permission to read the file" = "У вас нет прав на чтение файла";
 
 /* No comment provided by engineer. */
 "No SFTP session" = "Нет сеанса SFTP";
@@ -24,6 +24,8 @@
 
 /* No comment provided by engineer. */
 "Unable to open the input stream" = "Не удалось открыть входной поток";
+
+"Unable to open the output stream" = "Не удалось открыть выходной поток";
 
 /* No comment provided by engineer. */
 "Write error" = "Ошибка записи";

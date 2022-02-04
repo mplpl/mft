@@ -327,4 +327,36 @@ class mftTests: XCTestCase {
         XCTAssert(sftp.convToUtf8 == sftp.convNil)
         sftp.releaseIconv()
     }
+    
+    func testUploadNoR() throws {
+        let testItemSrc = "/tmp/mft/upload_test_no_r_src"
+        let testItemDest = "/tmp/mft/upload_test_no_r_dest"
+        let data = Data(repeating: 9, count: 2000000)
+        FileManager.default.createFile(atPath: testItemSrc, contents: data, attributes: [.posixPermissions:0o0])
+        
+        XCTAssertThrowsError(try sftp.writeFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
+            return true
+        }))
+    }
+    
+    func testResumeNoR() throws {
+        let testItemSrc = "/tmp/mft/upload_test_no_r_src"
+        let testItemDest = "/tmp/mft/upload_test_no_r_dest"
+        let data = Data(repeating: 9, count: 2000000)
+        FileManager.default.createFile(atPath: testItemSrc, contents: data, attributes: [.posixPermissions:0o0])
+        
+        XCTAssertThrowsError(try sftp.resumeFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
+            return true
+        }))
+    }
+    
+    func testUploadEmptyFile() throws {
+        let testItemSrc = "/tmp/mft/upload_test_empty_src"
+        let testItemDest = "/tmp/mft/upload_test_empty_dest"
+        FileManager.default.createFile(atPath: testItemSrc, contents: nil, attributes: [:])
+        
+        XCTAssertNoThrow(try sftp.writeFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
+            return true
+        }))
+    }
 }
