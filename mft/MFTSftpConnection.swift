@@ -403,10 +403,10 @@ import NSString_iconv
         let ret = MFTSftpConnectionInfo()
         
         if let sbanner = ssh_get_serverbanner(session) {
-            ret.serverBanner = String(cString: sbanner)
+            ret.serverBanner = stringWith(buf: sbanner)
         }
         if let ibanner = ssh_get_issue_banner(session) {
-            ret.issueBanner = String(cString: ibanner)
+            ret.issueBanner = stringWith(buf: ibanner)
         }
         
         if let cipher_in = ssh_get_cipher_in(session) {
@@ -1120,7 +1120,7 @@ import NSString_iconv
         return (s as NSString).toBuf(buf, bufLenght: s.convBufSize(), iconvFromUtf8: convFromUtf8)
     }
     
-    func stringWith(buf: UnsafeMutablePointer<CChar>) -> String {
+    func stringWith(buf: UnsafePointer<CChar>) -> String {
         return NSString(buf: buf, iconvToUtf8: convToUtf8) as String
     }
 }
