@@ -102,32 +102,50 @@ import NSString_iconv
         
         if self.username != "" {
             if ssh_options_set(session, SSH_OPTIONS_USER, self.username) < 0 {
-                ssh_free(session)
-                session = nil
+                defer {
+                    ssh_free(session)
+                    session = nil
+                }
                 throw error_ssh()
             }
         }
         
         if self.port > 0 {
             if ssh_options_set(session, SSH_OPTIONS_PORT_STR, String(self.port)) < 0 {
-                ssh_free(session)
-                session = nil
+                defer {
+                    ssh_free(session)
+                    session = nil
+                }
                 throw error_ssh()
             }
         }
 
         if ssh_options_set(session, SSH_OPTIONS_HOST, self.hostname) < 0 {
-            ssh_free(session)
-            session = nil
+            defer {
+                ssh_free(session)
+                session = nil
+            }
+            throw error_ssh()
+        }
+        
+        let x = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+        x.initialize(to: 0)
+        defer {x.deallocate()}
+        if ssh_options_set(session, SSH_OPTIONS_PROCESS_CONFIG, x) < 0 {
+            defer {
+                ssh_free(session)
+                session = nil
+            }
             throw error_ssh()
         }
         
         if ssh_connect(session) != 0 {
-            let err = error_ssh()
-            ssh_disconnect(session)
-            ssh_free(session)
-            session = nil
-            throw err
+            defer {
+                ssh_disconnect(session)
+                ssh_free(session)
+                session = nil
+            }
+            throw error_ssh()
         }
     }
     
