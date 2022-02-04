@@ -41,7 +41,7 @@ import NSString_iconv
          canceled = 999
 }
 
-@objc public class MFTSftpConnectionInfo: NSObject {
+@objcMembers public class MFTSftpConnectionInfo: NSObject {
     public var serverBanner = ""
     public var issueBanner = ""
     public var cipherIn = ""
@@ -63,6 +63,8 @@ import NSString_iconv
     let passphrase: String
     
     let bufSize = 0x8000
+    var sshUserauthNoneCalled = false
+    var sshUserauthNoneResult: Int32 = 0
     
     private var session: ssh_session?
     private var sftp_session: sftp_session?
@@ -202,8 +204,11 @@ import NSString_iconv
     func _authenticate() throws {
         var auth: Int32;
         
-        let ret = ssh_userauth_none(session, nil)
-        if ret == 0 {
+        if sshUserauthNoneCalled == false {
+            sshUserauthNoneResult = ssh_userauth_none(session, nil)
+            sshUserauthNoneCalled = true
+        }
+        if sshUserauthNoneResult == 0 {
             // this server allows access without authentication
             return
         }
@@ -348,7 +353,7 @@ import NSString_iconv
         }
     }
         
-    func connectionInfo() throws -> MFTSftpConnectionInfo {
+    public func connectionInfo() throws -> MFTSftpConnectionInfo {
     
         if session == nil {
             throw error(code: .no_session)
@@ -377,6 +382,11 @@ import NSString_iconv
         }
         if let kex = ssh_get_kex_algo(session) {
             ret.kexAlg = String(cString: kex)
+        }
+        
+        if sshUserauthNoneCalled == false {
+            sshUserauthNoneResult = ssh_userauth_none(session, nil)
+            sshUserauthNoneCalled = true
         }
         
         let supported = UInt32(ssh_userauth_list(session, nil))
