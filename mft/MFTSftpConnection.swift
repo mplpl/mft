@@ -412,6 +412,7 @@ import NSString_iconv
             throw error_sftp()
         }
         
+        var limitReached = false
         var ret = [MFTSftpItem]()
         
         while let file = sftp_readdir(sftp_session, dir) {
@@ -440,9 +441,13 @@ import NSString_iconv
                                 isSpecial: file.pointee.type == SSH_FILEXFER_TYPE_SPECIAL)
             
             ret.append(item)
+            if ret.count == maxItems { // note that maxItems == 0 makes this check false
+                limitReached = true
+                break
+            }
         }
         
-        if sftp_dir_eof(dir) == 0 {
+        if limitReached == false && sftp_dir_eof(dir) == 0 {
             throw error_sftp()
         }
 

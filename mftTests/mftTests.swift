@@ -371,4 +371,15 @@ class mftTests: XCTestCase {
         NSLog("HMAC in: %@ out: %@", info.hmacIn, info.hmacOut)
         NSLog("KEX alg: %@", info.kexAlg)
     }
+    
+    func testListWithLimit() throws {
+        let testItemSrc = "/tmp/mft/upload_list_test"
+        try FileManager.default.createDirectory(atPath: testItemSrc, withIntermediateDirectories: true, attributes: [:])
+        for i in 0...10 {
+            FileManager.default.createFile(atPath: testItemSrc + "/file_" + String(i), contents: nil, attributes: [:])
+        }
+        var items = [MFTSftpItem]()
+        XCTAssertNoThrow(items = try sftp.contentsOfDirectory(atPath: testItemSrc, maxItems: 5))
+        XCTAssert(items.count == 5)
+    }
 }
