@@ -60,6 +60,7 @@ import NSString_iconv
     let username: String
     let password: String
     let prvKeyPath: String
+    let prvKey: String
     let passphrase: String
     
     let bufSize = 0x8000
@@ -77,6 +78,7 @@ import NSString_iconv
         self.password = password
         
         self.prvKeyPath = ""
+        self.prvKey = ""
         self.passphrase = ""
     }
     
@@ -89,6 +91,20 @@ import NSString_iconv
         self.prvKeyPath = prvKeyPath
         self.passphrase = passphrase
         
+        self.prvKey = ""
+        self.password = ""
+    }
+    
+    public init(hostname: String, port: Int, username: String,
+         prvKey: String, passphrase: String) {
+        
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.prvKey = prvKey
+        self.passphrase = passphrase
+        
+        self.prvKeyPath = ""
         self.password = ""
     }
     
@@ -214,30 +230,13 @@ import NSString_iconv
         }
         let supported = UInt32(ssh_userauth_list(session, nil))
         
-        if self.prvKeyPath != "" {
-            
-            // public key authentication
+        if self.prvKeyPath != "" || self.prvKey != "" {
             
             if supported & SSH_AUTH_METHOD_PUBLICKEY != 0 {
-                if FileManager.default.fileExists(atPath: self.prvKeyPath) == false {
-                    ssh_disconnect(session)
-                    ssh_free(session)
-                    session = nil
-                    throw error(code: .authentication_failed)
-                } else {
-                    let pk = UnsafeMutablePointer<ssh_key?>.allocate(capacity: 1)
-                    defer {pk.deallocate()}
-                    auth = ssh_pki_import_privkey_file(self.prvKeyPath, self.passphrase, nil, nil, pk)
-                    if auth == 0 {
-                        auth = ssh_userauth_publickey(session, nil, pk.pointee)
-                        ssh_key_free(pk.pointee)
-                    } else {
-                        ssh_disconnect(session)
-                        ssh_free(session)
-                        session = nil
-                        throw error(code: .wrong_keyfile)
-                    }
-                }
+                
+                // public key authentication
+                auth = try _authenticatePublicKey()
+                
             } else {
                 ssh_disconnect(session)
                 ssh_free(session)
@@ -247,32 +246,17 @@ import NSString_iconv
                 throw error(code: .no_pubkey_method, msg: msg)
             }
         } else {
+            
             if supported & SSH_AUTH_METHOD_PASSWORD != 0 {
                 
                 // password authentication
-                
                 auth = ssh_userauth_password(session, nil, self.password)
+                
             } else if supported & SSH_AUTH_METHOD_INTERACTIVE != 0 {
                 
-                // keyboard interactive authentication
+                // interactive authentication
+                auth = try _authenticateInteractive()
                 
-                auth = ssh_userauth_kbdint(session, nil, nil)
-                if auth == SSH_AUTH_INFO.rawValue {
-                    //let name = ssh_userauth_kbdint_getname(session)
-                    //let inst = ssh_userauth_kbdint_getinstruction(session)
-                    let nprompts = ssh_userauth_kbdint_getnprompts(session)
-                    if (nprompts == 1) {
-                        //let echo = UnsafeMutablePointer<Int8>.allocate(capacity: 1)
-                        //let prompt = ssh_userauth_kbdint_getprompt(session, 0, echo)
-                        ssh_userauth_kbdint_setanswer(session, 0, self.password)
-                        auth = ssh_userauth_kbdint(session, nil, nil)
-                        if auth == SSH_AUTH_INFO.rawValue {
-                            // I don't know why, but I have to do it again
-                            ssh_userauth_kbdint_setanswer(session, 0, self.password)
-                            auth = ssh_userauth_kbdint(session, nil, nil)
-                        }
-                    }
-                }
             } else {
                 ssh_disconnect(session)
                 ssh_free(session)
@@ -295,6 +279,63 @@ import NSString_iconv
             session = nil
             throw err
         }
+    }
+    
+    func _authenticatePublicKey() throws -> Int32 {
+        
+        var auth: Int32
+        
+        let pk = UnsafeMutablePointer<ssh_key?>.allocate(capacity: 1)
+        defer {pk.deallocate()}
+        
+        // make pk based on a file of string
+        if self.prvKeyPath != "" {  // from a file
+            if FileManager.default.fileExists(atPath: self.prvKeyPath) == false {
+                ssh_disconnect(session)
+                ssh_free(session)
+                session = nil
+                throw error(code: .authentication_failed)
+            } else {
+                auth = ssh_pki_import_privkey_file(self.prvKeyPath, self.passphrase, nil, nil, pk)
+            }
+        } else { // from memory
+            auth = ssh_pki_import_privkey_base64(self.prvKey, self.passphrase, nil, nil, pk)
+        }
+        
+        // authenticate using pk
+        if auth == 0 {
+            auth = ssh_userauth_publickey(session, nil, pk.pointee)
+            ssh_key_free(pk.pointee)
+        } else {
+            ssh_disconnect(session)
+            ssh_free(session)
+            session = nil
+            throw error(code: .wrong_keyfile)
+        }
+        
+        return auth
+    }
+    
+    func _authenticateInteractive() throws -> Int32 {
+        
+        var auth = ssh_userauth_kbdint(session, nil, nil)
+        if auth == SSH_AUTH_INFO.rawValue {
+            //let name = ssh_userauth_kbdint_getname(session)
+            //let inst = ssh_userauth_kbdint_getinstruction(session)
+            let nprompts = ssh_userauth_kbdint_getnprompts(session)
+            if (nprompts == 1) {
+                //let echo = UnsafeMutablePointer<Int8>.allocate(capacity: 1)
+                //let prompt = ssh_userauth_kbdint_getprompt(session, 0, echo)
+                ssh_userauth_kbdint_setanswer(session, 0, self.password)
+                auth = ssh_userauth_kbdint(session, nil, nil)
+                if auth == SSH_AUTH_INFO.rawValue {
+                    // I don't know why, but I have to do it again
+                    ssh_userauth_kbdint_setanswer(session, 0, self.password)
+                    auth = ssh_userauth_kbdint(session, nil, nil)
+                }
+            }
+        }
+        return auth
     }
     
     func _sftpSession() throws {

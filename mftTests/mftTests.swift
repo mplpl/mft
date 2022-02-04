@@ -382,4 +382,18 @@ class mftTests: XCTestCase {
         XCTAssertNoThrow(items = try sftp.contentsOfDirectory(atPath: testItemSrc, maxItems: 5))
         XCTAssert(items.count == 5)
     }
+    
+    func testAuthWithPkInString() throws {
+        
+        let pk = try String(contentsOfFile: "/Users/mpl/.ssh/id_rsa")
+   
+        sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                              port: 22,
+                              username: "mpl",
+                              prvKey: pk,
+                              passphrase: "")
+        XCTAssertNoThrow(try sftp.connect())
+        XCTAssertNoThrow(try sftp.authenticate())
+        
+    }
 }
