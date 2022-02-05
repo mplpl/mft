@@ -3,6 +3,7 @@
 //  mftTests
 //
 //  Created by Marcin Labenski on 28/01/2022.
+//  Copyright © 2022 Marcin Labenski. All rights reserved.
 //
 
 import XCTest
@@ -400,5 +401,13 @@ class mftTests: XCTestCase {
     func testTimeoutSet() throws {
         sftp.timeout = 25
         XCTAssert(sftp.timeout == 25)
+    }
+    
+    func testReadlink() throws {
+        let testItemFile = "/tmp/mft/readlink_file"
+        let testItemLink = "/tmp/mft/readlink_link"
+        FileManager.default.createFile(atPath: testItemFile, contents: nil, attributes: [:])
+        try FileManager.default.createSymbolicLink(atPath: testItemLink, withDestinationPath: testItemFile)
+        XCTAssert(try sftp.effectiveTarget(forPath: testItemLink) == testItemFile)
     }
 }

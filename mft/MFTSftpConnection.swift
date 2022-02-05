@@ -467,6 +467,7 @@ import NSString_iconv
         var ret = [MFTSftpItem]()
         
         while let file = sftp_readdir(sftp_session, dir) {
+            defer {sftp_attributes_free(file)}
             
             if file.pointee.name == nil
                 || String(cString: file.pointee.name) == "."
@@ -530,8 +531,12 @@ import NSString_iconv
         
         let path: String
         if atPath == "." {
-            let p = sftp_canonicalize_path(sftp_session, ".")
-            path = stringWith(buf: p!) ?? ""
+            if let p = sftp_canonicalize_path(sftp_session, ".") {
+                defer {ssh_string_free_char(p)}
+                path = stringWith(buf: p) ?? ""
+            } else {
+                path = ""
+            }
         } else {
             path = atPath
         }
@@ -544,6 +549,7 @@ import NSString_iconv
         defer {pathC.deallocate()}
         
         if let file = sftp_stat(sftp_session, pathC) {
+            defer {sftp_attributes_free(file)}
             
             var ownerS = ""
             var groupS = ""
@@ -587,6 +593,7 @@ import NSString_iconv
         defer {pathC.deallocate()}
         
         if let file = sftp_readlink(sftp_session, pathC) {
+            defer {ssh_string_free_char(file)}
             if let n = stringWith(buf: file) {
                 return n
             } else {
@@ -748,9 +755,7 @@ import NSString_iconv
             flags |= O_TRUNC
         }
         if let file = sftp_open(sftp_session, pathC, flags, 0o644) {
-            defer {
-                sftp_close(file)
-            }
+            defer {sftp_close(file)}
             
             if append {
                 let fileInfo = try infoForFile(atPath: path)
@@ -940,7 +945,7 @@ import NSString_iconv
         defer {pathC.deallocate()}
         
         if let stat = sftp_statvfs(sftp_session, pathC) {
-            
+            defer {sftp_statvfs_free(stat)}
             let size = UInt64(stat.pointee.f_frsize * stat.pointee.f_blocks)
             let freeSpace = UInt64(stat.pointee.f_bavail * stat.pointee.f_frsize)
             return MFTFilesystemStats(size: size, freeSpace: freeSpace)
