@@ -170,6 +170,18 @@ import NSString_iconv
             throw error_ssh()
         }
         
+        let ciphers = "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,aes256-cbc,aes192-cbc,aes128-cbc,3des-cbc"
+        let compression = "none,zlib,zlib@openssh.com"
+        if ssh_options_set(session, SSH_OPTIONS_CIPHERS_C_S, ciphers) < 0 ||
+            ssh_options_set(session, SSH_OPTIONS_CIPHERS_S_C, ciphers) < 0 ||
+            ssh_options_set(session, SSH_OPTIONS_COMPRESSION, compression) < 0{
+            defer {
+                ssh_free(session)
+                session = nil
+            }
+            throw error_ssh()
+        }
+        
         if ssh_connect(session) != 0 {
             defer {
                 ssh_disconnect(session)
