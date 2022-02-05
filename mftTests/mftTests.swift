@@ -396,4 +396,9 @@ class mftTests: XCTestCase {
         XCTAssertNoThrow(try sftp.authenticate())
         
     }
+    
+    func testTimeoutSet() throws {
+        sftp.timeout = 25
+        XCTAssert(sftp.timeout == 25)
+    }
 }

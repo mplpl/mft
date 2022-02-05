@@ -174,7 +174,7 @@ import NSString_iconv
         let compression = "none,zlib,zlib@openssh.com"
         if ssh_options_set(session, SSH_OPTIONS_CIPHERS_C_S, ciphers) < 0 ||
             ssh_options_set(session, SSH_OPTIONS_CIPHERS_S_C, ciphers) < 0 ||
-            ssh_options_set(session, SSH_OPTIONS_COMPRESSION, compression) < 0{
+            ssh_options_set(session, SSH_OPTIONS_COMPRESSION, compression) < 0 {
             defer {
                 ssh_free(session)
                 session = nil
@@ -388,21 +388,18 @@ import NSString_iconv
         }
     }
     
+    private var _timeout: Int = 0
+    
     public var timeout: Int {
         get {
-            if session != nil {
-                var buf: UnsafeMutablePointer<Int8>?
-                if ssh_options_get(session, SSH_OPTIONS_TIMEOUT, &buf) < 0 {
-                    defer { ssh_string_free_char(buf) }
-                    let timeoutS = String(cString: buf!)
-                    return Int(timeoutS) ?? -1
-                }
-            }
-            return -1
+            return _timeout
         }
         set {
             if session != nil {
-                ssh_options_set(session, SSH_OPTIONS_TIMEOUT, String(newValue))
+                let buf = UnsafeMutablePointer<Int>.allocate(capacity: 1)
+                buf.initialize(to: newValue)
+                ssh_options_set(session, SSH_OPTIONS_TIMEOUT, buf)
+                _timeout = newValue
             }
         }
     }
