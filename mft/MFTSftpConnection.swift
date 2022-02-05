@@ -38,6 +38,7 @@ import NSString_iconv
          local_open_error_for_writing,
          local_file_not_readable,
          wrong_keyfile,
+         file_not_found,
          canceled = 999
 }
 
@@ -403,10 +404,10 @@ import NSString_iconv
         let ret = MFTSftpConnectionInfo()
         
         if let sbanner = ssh_get_serverbanner(session) {
-            ret.serverBanner = stringWith(buf: sbanner)
+            ret.serverBanner = stringWith(buf: sbanner) ?? ""
         }
         if let ibanner = ssh_get_issue_banner(session) {
-            ret.issueBanner = stringWith(buf: ibanner)
+            ret.issueBanner = stringWith(buf: ibanner) ?? ""
         }
         
         if let cipher_in = ssh_get_cipher_in(session) {
@@ -464,27 +465,40 @@ import NSString_iconv
                 continue
             }
             
-            let item = MFTSftpItem(name: stringWith(buf: file.pointee.name),
-                                size: file.pointee.size,
-                                uid: file.pointee.uid,
-                                gid: file.pointee.gid,
-                                owner: stringWith(buf: file.pointee.owner),
-                                group: stringWith(buf: file.pointee.group),
-                                permissions: file.pointee.permissions,
-                                atime: file.pointee.atime,
-                                atimeNanos: file.pointee.atime_nseconds,
-                                mtime: file.pointee.mtime,
-                                mtimeNanos: file.pointee.mtime_nseconds,
-                                createTime: file.pointee.createtime,
-                                createTimeNanos: file.pointee.createtime_nseconds,
-                                isDir: file.pointee.type == SSH_FILEXFER_TYPE_DIRECTORY,
-                                isSymlink: file.pointee.type == SSH_FILEXFER_TYPE_SYMLINK,
-                                isSpecial: file.pointee.type == SSH_FILEXFER_TYPE_SPECIAL)
+            if let fname = stringWith(buf: file.pointee.name) {
             
-            ret.append(item)
-            if ret.count == maxItems { // note that maxItems == 0 makes this check false
-                limitReached = true
-                break
+                var ownerS = ""
+                var groupS = ""
+                
+                if let owner = file.pointee.owner {
+                    ownerS = stringWith(buf: owner) ?? ""
+                }
+                if let group = file.pointee.group {
+                    groupS = stringWith(buf: group) ?? ""
+                }
+                
+                let item = MFTSftpItem(name: fname,
+                                    size: file.pointee.size,
+                                    uid: file.pointee.uid,
+                                    gid: file.pointee.gid,
+                                    owner: ownerS,
+                                    group: groupS,
+                                    permissions: file.pointee.permissions,
+                                    atime: file.pointee.atime,
+                                    atimeNanos: file.pointee.atime_nseconds,
+                                    mtime: file.pointee.mtime,
+                                    mtimeNanos: file.pointee.mtime_nseconds,
+                                    createTime: file.pointee.createtime,
+                                    createTimeNanos: file.pointee.createtime_nseconds,
+                                    isDir: file.pointee.type == SSH_FILEXFER_TYPE_DIRECTORY,
+                                    isSymlink: file.pointee.type == SSH_FILEXFER_TYPE_SYMLINK,
+                                    isSpecial: file.pointee.type == SSH_FILEXFER_TYPE_SPECIAL)
+                
+                ret.append(item)
+                if ret.count == maxItems { // note that maxItems == 0 makes this check false
+                    limitReached = true
+                    break
+                }
             }
         }
         
@@ -508,21 +522,36 @@ import NSString_iconv
         let path: String
         if atPath == "." {
             let p = sftp_canonicalize_path(sftp_session, ".")
-            path = stringWith(buf: p!)
+            path = stringWith(buf: p!) ?? ""
         } else {
             path = atPath
+        }
+        
+        if path == "" {
+            throw error(code: .file_not_found)
         }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
         if let file = sftp_stat(sftp_session, pathC) {
+            
+            var ownerS = ""
+            var groupS = ""
+            
+            if let owner = file.pointee.owner {
+                ownerS = stringWith(buf: owner) ?? ""
+            }
+            if let group = file.pointee.group {
+                groupS = stringWith(buf: group) ?? ""
+            }
+            
             let item = MFTSftpItem(name: path,
                                 size: file.pointee.size,
                                 uid: file.pointee.uid,
                                 gid: file.pointee.gid,
-                                owner: "", //String(cString: file.pointee.owner),
-                                group: "", //String(cString: file.pointee.group),
+                                owner: ownerS,
+                                group: groupS,
                                 permissions: file.pointee.permissions,
                                 atime: file.pointee.atime,
                                 atimeNanos: file.pointee.atime_nseconds,
@@ -549,7 +578,11 @@ import NSString_iconv
         defer {pathC.deallocate()}
         
         if let file = sftp_readlink(sftp_session, pathC) {
-            return stringWith(buf: file)
+            if let n = stringWith(buf: file) {
+                return n
+            } else {
+                throw error(code: .file_not_found)
+            }
         } else {
             throw error_sftp()
         }
@@ -1065,6 +1098,9 @@ import NSString_iconv
         case .wrong_keyfile:
             return NSLocalizedString("Wrong keyfile format or wrong passphrase", comment: "")
             
+        case .file_not_found:
+            return NSLocalizedString("Item not found", comment: "")
+            
         case .canceled:
             return NSLocalizedString("Canceled", comment: "")
             
@@ -1120,7 +1156,7 @@ import NSString_iconv
         return (s as NSString).toBuf(buf, bufLenght: s.convBufSize(), iconvFromUtf8: convFromUtf8)
     }
     
-    func stringWith(buf: UnsafePointer<CChar>) -> String {
-        return NSString(buf: buf, iconvToUtf8: convToUtf8) as String
+    func stringWith(buf: UnsafePointer<CChar>) -> String? {
+        return NSString(buf: buf, iconvToUtf8: convToUtf8) as String?
     }
 }
