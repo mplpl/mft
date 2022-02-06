@@ -17,6 +17,9 @@
 "You don't have permission to read the file" = "У вас нет прав на чтение файла";
 
 /* No comment provided by engineer. */
+"You don't have permission to write the file" = "У вас нет прав для записи файла";
+
+/* No comment provided by engineer. */
 "No SFTP session" = "Нет сеанса SFTP";
 
 /* No comment provided by engineer. */
@@ -31,3 +34,5 @@
 "Write error" = "Ошибка записи";
 
 "Wrong keyfile format or wrong passphrase" = "Неверный формат ключевого файла или неправильная парольная фраза";
+
+"Item not found" = "Файл не найден";

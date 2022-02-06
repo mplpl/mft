@@ -16,6 +16,8 @@
 /* No comment provided by engineer. */
 "You don't have permission to read the file" = "Nie masz uprawnien do odczytywanie tego pliku";
 
+"You don't have permission to write the file" = "Nie masz uprawnien do zapisywania tego pliku";
+
 /* No comment provided by engineer. */
 "No SFTP session" = "Brak sesji SFTP";
 
@@ -31,3 +33,5 @@
 "Write error" = "Błąd zapisu";
 
 "Wrong keyfile format or wrong passphrase" = "Nieprawidłowy format pliku klucza lub nieprawidłowe hasło";
+
+"Item not found" = "Nie znaleziono rzeczy";

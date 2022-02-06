@@ -17,6 +17,9 @@
 "You don't have permission to read the file" = "Sie sind nicht berechtigt, die Datei zu lesen";
 
 /* No comment provided by engineer. */
+"You don't have permission to write the file" = "Sie sind nicht berechtigt, die Datei zu schreiben";
+
+/* No comment provided by engineer. */
 "No SFTP session" = "Keine SFTP-Sitzung";
 
 /* No comment provided by engineer. */
@@ -31,3 +34,5 @@
 "Write error" = "Fehler beim Schreiben";
 
 "Wrong keyfile format or wrong passphrase" = "Falsches Schlüsseldateiformat oder falsche Passphrase";
+
+"Item not found" = "Objekt nicht gefunden";
