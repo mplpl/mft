@@ -160,10 +160,8 @@ import NSString_iconv
             throw error_ssh()
         }
         
-        let x = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
-        x.initialize(to: 0)
-        defer {x.deallocate()}
-        if ssh_options_set(session, SSH_OPTIONS_PROCESS_CONFIG, x) < 0 {
+        var x: Int32 = 0
+        if ssh_options_set(session, SSH_OPTIONS_PROCESS_CONFIG, &x) < 0 {
             defer {
                 ssh_free(session)
                 session = nil
@@ -298,9 +296,7 @@ import NSString_iconv
     func _authenticatePublicKey() throws -> Int32 {
         
         var auth: Int32
-        
-        let pk = UnsafeMutablePointer<ssh_key?>.allocate(capacity: 1)
-        defer {pk.deallocate()}
+        var pk: ssh_key?
         
         // make pk based on a file of string
         if self.prvKeyPath != "" {  // from a file
@@ -310,16 +306,16 @@ import NSString_iconv
                 session = nil
                 throw error(code: .authentication_failed)
             } else {
-                auth = ssh_pki_import_privkey_file(self.prvKeyPath, self.passphrase, nil, nil, pk)
+                auth = ssh_pki_import_privkey_file(self.prvKeyPath, self.passphrase, nil, nil, &pk)
             }
         } else { // from memory
-            auth = ssh_pki_import_privkey_base64(self.prvKey, self.passphrase, nil, nil, pk)
+            auth = ssh_pki_import_privkey_base64(self.prvKey, self.passphrase, nil, nil, &pk)
         }
         
         // authenticate using pk
-        if auth == 0 {
-            auth = ssh_userauth_publickey(session, nil, pk.pointee)
-            ssh_key_free(pk.pointee)
+        if auth == 0 && pk != nil {
+            auth = ssh_userauth_publickey(session, nil, pk)
+            ssh_key_free(pk)
         } else {
             ssh_disconnect(session)
             ssh_free(session)
@@ -338,8 +334,8 @@ import NSString_iconv
             //let inst = ssh_userauth_kbdint_getinstruction(session)
             let nprompts = ssh_userauth_kbdint_getnprompts(session)
             if (nprompts == 1) {
-                //let echo = UnsafeMutablePointer<Int8>.allocate(capacity: 1)
-                //let prompt = ssh_userauth_kbdint_getprompt(session, 0, echo)
+                //var echo: Int8 = 1
+                //let prompt = ssh_userauth_kbdint_getprompt(session, 0, &echo)
                 ssh_userauth_kbdint_setanswer(session, 0, self.password)
                 auth = ssh_userauth_kbdint(session, nil, nil)
                 if auth == SSH_AUTH_INFO.rawValue {
@@ -397,9 +393,8 @@ import NSString_iconv
         }
         set {
             if session != nil {
-                let buf = UnsafeMutablePointer<Int>.allocate(capacity: 1)
-                buf.initialize(to: newValue)
-                ssh_options_set(session, SSH_OPTIONS_TIMEOUT, buf)
+                var newValueM = newValue
+                ssh_options_set(session, SSH_OPTIONS_TIMEOUT, &newValueM)
                 _timeout = newValue
             }
         }
@@ -902,20 +897,19 @@ import NSString_iconv
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
-        let fileAttrs = sftp_attributes.allocate(capacity: 1)
-        defer { fileAttrs.deallocate() }
-        fileAttrs.pointee.flags = UInt32(SSH_FILEXFER_ATTR_ACMODTIME)
+        var fileAttrs = sftp_attributes_struct()
+        fileAttrs.flags = UInt32(SSH_FILEXFER_ATTR_ACMODTIME)
         if mtime != nil {
-            fileAttrs.pointee.mtime = UInt32(mtime!.timeIntervalSince1970)
+            fileAttrs.mtime = UInt32(mtime!.timeIntervalSince1970)
         } else {
-            fileAttrs.pointee.mtime = 0
+            fileAttrs.mtime = 0
         }
         if (atime != nil) {
-            fileAttrs.pointee.atime = UInt32(atime!.timeIntervalSince1970)
+            fileAttrs.atime = UInt32(atime!.timeIntervalSince1970)
         } else {
-            fileAttrs.pointee.atime = 0
+            fileAttrs.atime = 0
         }
-        if sftp_setstat(sftp_session, pathC, fileAttrs) < 0 {
+        if sftp_setstat(sftp_session, pathC, &fileAttrs) < 0 {
             throw error_sftp()
         }
     }
@@ -929,11 +923,10 @@ import NSString_iconv
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
-        let fileAttrs = sftp_attributes.allocate(capacity: 1)
-        defer { fileAttrs.deallocate() }
-        fileAttrs.pointee.permissions = permissions
-        fileAttrs.pointee.flags = UInt32(SSH_FILEXFER_ATTR_PERMISSIONS)
-        if sftp_setstat(sftp_session, pathC, fileAttrs) < 0 {
+        var fileAttrs = sftp_attributes_struct()
+        fileAttrs.permissions = permissions
+        fileAttrs.flags = UInt32(SSH_FILEXFER_ATTR_PERMISSIONS)
+        if sftp_setstat(sftp_session, pathC, &fileAttrs) < 0 {
             throw error_sftp()
         }
     }
