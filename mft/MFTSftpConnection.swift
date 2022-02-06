@@ -37,6 +37,7 @@ import NSString_iconv
          local_open_error_for_reading,
          local_open_error_for_writing,
          local_file_not_readable,
+         local_file_not_writable,
          wrong_keyfile,
          file_not_found,
          canceled = 999
@@ -1025,7 +1026,7 @@ import NSString_iconv
     
     // MARK: - Auxilary convinience functions
     
-    public func resumeFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
+    public func resumeUploadFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
         if FileManager.default.isReadableFile(atPath: path) == false {
             throw error(code: .local_file_not_readable)
         }
@@ -1036,15 +1037,44 @@ import NSString_iconv
         try write(stream: istream!, toFileAtPath: toFileAtPath, append: true, progress: progress)
     }
     
-    public func writeFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
+    public func uploadFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
         if FileManager.default.isReadableFile(atPath: path) == false {
             throw error(code: .local_file_not_readable)
         }
         let istream = InputStream(fileAtPath: path)
         if istream == nil {
-            throw error(code: .local_open_error_for_writing)
+            throw error(code: .local_open_error_for_reading)
         }
         try write(stream: istream!, toFileAtPath: toFileAtPath, append: false, progress: progress)
+    }
+    
+    public func downloadFile(atPath path: String, toFileAtPath:String,
+                             progress:((UInt64, UInt64) -> (Bool))?) throws {
+        if FileManager.default.isWritableFile(atPath: toFileAtPath) == false {
+            throw error(code: .local_file_not_writable)
+        }
+        let ostream = OutputStream(toFileAtPath: toFileAtPath, append: false)
+        if ostream == nil {
+            throw error(code: .local_open_error_for_writing)
+        }
+        try contents(atPath: path, toStream: ostream!, fromPosition: 0, progress: progress)
+    }
+    
+    public func resumeDownloadFile(atPath path: String, toFileAtPath:String,
+                             progress:((UInt64, UInt64) -> (Bool))?) throws {
+        if FileManager.default.isWritableFile(atPath: toFileAtPath) == false {
+            throw error(code: .local_file_not_writable)
+        }
+        var pos: UInt64 = 0
+        do {
+            let attrs = try FileManager.default.attributesOfItem(atPath: toFileAtPath)
+            pos = (attrs as NSDictionary).fileSize()
+        } catch {}
+        let ostream = OutputStream(toFileAtPath: toFileAtPath, append: pos>0)
+        if ostream == nil {
+            throw error(code: .local_open_error_for_writing)
+        }
+        try contents(atPath: path, toStream: ostream!, fromPosition: pos, progress: progress)
     }
 
     // MARK: - Errors
@@ -1108,6 +1138,9 @@ import NSString_iconv
             
         case .local_file_not_readable:
             return NSLocalizedString("You don't have permission to read the file", comment: "")
+            
+        case .local_file_not_writable:
+            return NSLocalizedString("You don't have permission to write the file", comment: "")
             
         case .wrong_keyfile:
             return NSLocalizedString("Wrong keyfile format or wrong passphrase", comment: "")

@@ -28,6 +28,25 @@ class mftTests: XCTestCase {
         try FileManager.default.removeItem(atPath: "/tmp/mft")
     }
     
+    func md5(forFileAtPath path: String) -> String {
+        
+        let pipe = Pipe()
+        let task = Process()
+        task.launchPath = "/sbin/md5"
+        task.arguments = ["-q", path]
+        task.standardOutput = pipe;
+        task.launch()
+        let fh = pipe.fileHandleForReading
+        let taskData = fh.readDataToEndOfFile()
+        let dataString = String(bytes: taskData, encoding: .utf8)
+        if let results = dataString?.components(separatedBy: "\n") {
+            if results.count > 0 {
+                return results[1]
+            }
+        }
+        return ""
+    }
+    
     func testConnect() throws {
         XCTAssert(sftp.connected)
         sftp.disconnect()
@@ -168,6 +187,7 @@ class mftTests: XCTestCase {
         let destAttrs = try FileManager.default.attributesOfItem(atPath: testItem) as NSDictionary
         
         XCTAssert(srcAttrs.fileSize() == destAttrs.fileSize())
+        XCTAssert(md5(forFileAtPath: testItem) == md5(forFileAtPath: "/usr/bin/ssh"))
     }
     
     func testDownloadWithResume() throws {
@@ -204,6 +224,7 @@ class mftTests: XCTestCase {
         
         let destAttrs = try FileManager.default.attributesOfItem(atPath: testItem) as NSDictionary
         XCTAssert(srcAttrs.fileSize() == destAttrs.fileSize())
+        XCTAssert(md5(forFileAtPath: testItem) == md5(forFileAtPath: "/usr/bin/ssh"))
     }
     
     func testMkdir() throws {
@@ -335,7 +356,7 @@ class mftTests: XCTestCase {
         let data = Data(repeating: 9, count: 2000000)
         FileManager.default.createFile(atPath: testItemSrc, contents: data, attributes: [.posixPermissions:0o0])
         
-        XCTAssertThrowsError(try sftp.writeFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
+        XCTAssertThrowsError(try sftp.uploadFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
             return true
         }))
     }
@@ -346,7 +367,7 @@ class mftTests: XCTestCase {
         let data = Data(repeating: 9, count: 2000000)
         FileManager.default.createFile(atPath: testItemSrc, contents: data, attributes: [.posixPermissions:0o0])
         
-        XCTAssertThrowsError(try sftp.resumeFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
+        XCTAssertThrowsError(try sftp.resumeUploadFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
             return true
         }))
     }
@@ -356,7 +377,7 @@ class mftTests: XCTestCase {
         let testItemDest = "/tmp/mft/upload_test_empty_dest"
         FileManager.default.createFile(atPath: testItemSrc, contents: nil, attributes: [:])
         
-        XCTAssertNoThrow(try sftp.writeFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
+        XCTAssertNoThrow(try sftp.uploadFile(atPath: testItemSrc, toFileAtPath: testItemDest, progress: { uploaded in
             return true
         }))
     }
@@ -409,5 +430,90 @@ class mftTests: XCTestCase {
         FileManager.default.createFile(atPath: testItemFile, contents: nil, attributes: [:])
         try FileManager.default.createSymbolicLink(atPath: testItemLink, withDestinationPath: testItemFile)
         XCTAssert(try sftp.effectiveTarget(forPath: testItemLink) == testItemFile)
+    }
+    
+    func testUploadResume() throws {
+        let testSrc = "/tmp/mft/upload_resume_src"
+        let testDest = "/tmp/mft/upload_resume_dest"
+        let data = Data(repeating: 9, count: 2000000)
+        FileManager.default.createFile(atPath: testDest, contents: data, attributes: [:])
+        let data2 = Data(repeating: 8, count: 2000000)
+        let data3 = data + data2
+        FileManager.default.createFile(atPath: testSrc, contents: data3, attributes: [:])
+        var totalUploaded:UInt64 = 0
+        XCTAssertNoThrow(try sftp.resumeUploadFile(atPath: testSrc, toFileAtPath: testDest) { uploaded in
+            totalUploaded = uploaded
+            return true
+        })
+        XCTAssert(totalUploaded == 2000000)
+        let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
+        XCTAssert(attrs.fileSize() == 4000000)
+        XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
+    }
+    
+    func testUploadOverwrite() throws {
+        let testSrc = "/tmp/mft/overwrite_src"
+        let testDest = "/tmp/mft/overwrite_dest"
+        let data = Data(repeating: 9, count: 2000000)
+        FileManager.default.createFile(atPath: testDest, contents: data, attributes: [:])
+        let data2 = Data(repeating: 8, count: 2000000)
+        let data3 = data + data2
+        FileManager.default.createFile(atPath: testSrc, contents: data3, attributes: [:])
+        var totalUploaded:UInt64 = 0
+        XCTAssertNoThrow(try sftp.uploadFile(atPath: testSrc, toFileAtPath: testDest) { uploaded in
+            NSLog("%d", uploaded)
+            totalUploaded = uploaded
+            return true
+        })
+        XCTAssert(totalUploaded == 4000000)
+        let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
+        XCTAssert(attrs.fileSize() == 4000000)
+        XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
+    }
+    
+    func testDownloadResume() throws {
+        let testSrc = "/tmp/mft/download_resume_src"
+        let testDest = "/tmp/mft/download_resume_dest"
+        let data = Data(repeating: 9, count: 2000000)
+        FileManager.default.createFile(atPath: testDest, contents: data, attributes: [:])
+        let data2 = Data(repeating: 8, count: 2000000)
+        let data3 = data + data2
+        FileManager.default.createFile(atPath: testSrc, contents: data3, attributes: [:])
+        var downloadStartAt:UInt64 = 0
+        XCTAssertNoThrow(try sftp.resumeDownloadFile(atPath: testSrc, toFileAtPath: testDest, progress: {
+            downloaded, total in
+            
+            if downloadStartAt == 0 {
+                downloadStartAt = downloaded
+            }
+            return true
+        }))
+        XCTAssert(downloadStartAt < 3000000)  // ~ 2000000+bufferSize
+        let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
+        XCTAssert(attrs.fileSize() == 4000000)
+        XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
+    }
+    
+    func testDownloadOverwrite() throws {
+        let testSrc = "/tmp/mft/download_resume_src"
+        let testDest = "/tmp/mft/download_resume_dest"
+        let data = Data(repeating: 9, count: 2000000)
+        FileManager.default.createFile(atPath: testDest, contents: data, attributes: [:])
+        let data2 = Data(repeating: 8, count: 2000000)
+        let data3 = data + data2
+        FileManager.default.createFile(atPath: testSrc, contents: data3, attributes: [:])
+        var downloadStartAt:UInt64 = 0
+        XCTAssertNoThrow(try sftp.downloadFile(atPath: testSrc, toFileAtPath: testDest, progress: {
+            downloaded, total in
+            
+            if downloadStartAt == 0 {
+                downloadStartAt = downloaded
+            }
+            return true
+        }))
+        XCTAssert(downloadStartAt < 1000000) // ~ bufferSize
+        let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
+        XCTAssert(attrs.fileSize() == 4000000)
+        XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
     }
 }
