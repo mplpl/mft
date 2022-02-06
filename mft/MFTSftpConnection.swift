@@ -758,6 +758,7 @@ import NSString_iconv
         if let file = sftp_open(sftp_session, pathC, flags, 0o644) {
             defer {sftp_close(file)}
             
+            var progressStartsFrom: UInt64 = 0
             if append {
                 let fileInfo = try infoForFile(atPath: path)
                 inputStream.setProperty(fileInfo.size, forKey: .fileCurrentOffsetKey)
@@ -765,18 +766,21 @@ import NSString_iconv
                     throw error(code: .local_read_error)
                 }
                 sftp_seek64(file, fileInfo.size)
+                progressStartsFrom = fileInfo.size
             }
             
-            try _write(stream: inputStream, toFileHandle: file, progress: progress)
+            try _write(stream: inputStream, toFileHandle: file, progressStartsFrom: progressStartsFrom,
+                       progress: progress)
             
         } else {
             throw error_sftp()
         }
     }
     
-    func _write(stream inputStream: InputStream, toFileHandle file:sftp_file, progress:((UInt64) -> (Bool))?) throws {
+    func _write(stream inputStream: InputStream, toFileHandle file:sftp_file, progressStartsFrom: UInt64,
+                progress:((UInt64) -> (Bool))?) throws {
             
-        var totalWriteCount: UInt64 = 0
+        var totalWriteCount = progressStartsFrom
         let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
         defer { buf.deallocate() }
         var readCount: Int = -1

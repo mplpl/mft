@@ -440,12 +440,14 @@ class mftTests: XCTestCase {
         let data2 = Data(repeating: 8, count: 2000000)
         let data3 = data + data2
         FileManager.default.createFile(atPath: testSrc, contents: data3, attributes: [:])
-        var totalUploaded:UInt64 = 0
+        var uploadStartAt:UInt64 = 0
         XCTAssertNoThrow(try sftp.resumeUploadFile(atPath: testSrc, toFileAtPath: testDest) { uploaded in
-            totalUploaded = uploaded
+            if uploadStartAt == 0 {
+                uploadStartAt = uploaded
+            }
             return true
         })
-        XCTAssert(totalUploaded == 2000000)
+        XCTAssert(uploadStartAt < 3000000) // ~ 2000000+bufferSize
         let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
         XCTAssert(attrs.fileSize() == 4000000)
         XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
@@ -459,13 +461,15 @@ class mftTests: XCTestCase {
         let data2 = Data(repeating: 8, count: 2000000)
         let data3 = data + data2
         FileManager.default.createFile(atPath: testSrc, contents: data3, attributes: [:])
-        var totalUploaded:UInt64 = 0
+        var uploadStartAt:UInt64 = 0
         XCTAssertNoThrow(try sftp.uploadFile(atPath: testSrc, toFileAtPath: testDest) { uploaded in
             NSLog("%d", uploaded)
-            totalUploaded = uploaded
+            if uploadStartAt == 0 {
+                uploadStartAt = uploaded
+            }
             return true
         })
-        XCTAssert(totalUploaded == 4000000)
+        XCTAssert(uploadStartAt < 1000000) // ~ bufferSize
         let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
         XCTAssert(attrs.fileSize() == 4000000)
         XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
