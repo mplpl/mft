@@ -86,7 +86,7 @@ import NSString_iconv
     /// - Parameters:
     ///     - hostname: The SFTP server hostname.
     ///     - port: The SFTP server port name.
-    ///     - useranem: The user name to authenticate as.
+    ///     - username: The user name to authenticate as.
     ///     - password: The user password.
     public init(hostname: String, port: Int, username: String, password: String) {
         
@@ -104,7 +104,7 @@ import NSString_iconv
     /// - Parameters:
     ///     - hostname: The SFTP server hostname.
     ///     - port: The SFTP server port name.
-    ///     - useranem: The user name to authenticate as.
+    ///     - username: The user name to authenticate as.
     ///     - prvKeyPath: The path of file containing the private key to use.
     ///     - passphrase: The key passphrase to use - is no passphrase was set, pass a blank string.
     public init(hostname: String, port: Int, username: String,
@@ -124,7 +124,7 @@ import NSString_iconv
     /// - Parameters:
     ///     - hostname: The SFTP server hostname.
     ///     - port: The SFTP server port name.
-    ///     - useranem: The user name to authenticate as.
+    ///     - username: The user name to authenticate as.
     ///     - prvKey: The private key to use.
     ///     - passphrase: The key passphrase to use - is no passphrase was set, pass a blank string.
     public init(hostname: String, port: Int, username: String,
@@ -913,7 +913,7 @@ import NSString_iconv
     /// - Parameters:
     ///     - fromPath: Source path (on the server).
     ///     - toPath: Destination path (on the server).
-    ///     - parogress: Progress report callback - its two arguments are used to copied bytes counter
+    ///     - progress: Progress report callback - its two arguments are used to copied bytes counter
     ///     and the size of the file to copy. The return value false can be used to abort the operation.
     /// - Throws: NSError on error.
     public func copyItem(atPath fromPath: String, toFileAtPath toPath:String, progress:((UInt64, UInt64) -> (Bool))?) throws {
