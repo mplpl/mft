@@ -10,6 +10,7 @@ import Foundation
 import libssh
 import NSString_iconv
 
+/// Status of the hosts.
 @objc public enum MFTKnownHostStatus: Int {
     case KNOWN_HOSTS_ERROR = -2, KNOWN_HOSTS_NOT_FOUND = -1,
     KNOWN_HOSTS_UNKNOWN = 0, KNOWN_HOSTS_OK, KNOWN_HOSTS_CHANGED,
@@ -17,6 +18,7 @@ import NSString_iconv
     NO_SESSION = 100
 }
 
+/// File system statistics.
 @objcMembers public class MFTFilesystemStats: NSObject {
     public var size:UInt64
     public var freeSpace: UInt64
@@ -26,6 +28,7 @@ import NSString_iconv
     }
 }
 
+/// Error codes used in NSError objects reported by methods of MFTSftpConnectionInfo class.
 @objc public enum MFTErrorCode: Int {
     case no_error = 0,
          no_session,
@@ -43,6 +46,7 @@ import NSString_iconv
          canceled = 999
 }
 
+/// SFTP connection information
 @objcMembers public class MFTSftpConnectionInfo: NSObject {
     public var serverBanner = ""
     public var issueBanner = ""
@@ -55,6 +59,12 @@ import NSString_iconv
     public var protocolVerions: Int32 = -1
 }
 
+/// The class represents a single SFTP connection. It contains method for establishing connections,
+/// authenticating on the server as well as methods for items manipulation (like uploading, downloading,
+/// removing, creating, ...).
+/// The objects of this class are NOT thread safe and must NOT be used to running multiple operations
+/// at the same time. If you need such functionality, create multiple MFTSftpConnection (and by doing that
+/// establish multiple SFTP connections).
 @objcMembers public class MFTSftpConnection: NSObject {
 
     let hostname: String
@@ -72,6 +82,12 @@ import NSString_iconv
     private var session: ssh_session?
     private var sftp_session: sftp_session?
     
+    /// Create a new connection with password based authentication data.
+    /// - Parameters:
+    ///     - hostname: The SFTP server hostname.
+    ///     - port: The SFTP server port name.
+    ///     - useranem: The user name to authenticate as.
+    ///     - password: The user password.
     public init(hostname: String, port: Int, username: String, password: String) {
         
         self.hostname = hostname
@@ -84,6 +100,13 @@ import NSString_iconv
         self.passphrase = ""
     }
     
+    /// Create a new connection with public key based authentication data read from a file.
+    /// - Parameters:
+    ///     - hostname: The SFTP server hostname.
+    ///     - port: The SFTP server port name.
+    ///     - useranem: The user name to authenticate as.
+    ///     - prvKeyPath: The path of file containing the private key to use.
+    ///     - passphrase: The key passphrase to use - is no passphrase was set, pass a blank string.
     public init(hostname: String, port: Int, username: String,
          prvKeyPath: String, passphrase: String) {
         
@@ -97,6 +120,13 @@ import NSString_iconv
         self.password = ""
     }
     
+    /// Create a new connection with public key based authentication data read from a string.
+    /// - Parameters:
+    ///     - hostname: The SFTP server hostname.
+    ///     - port: The SFTP server port name.
+    ///     - useranem: The user name to authenticate as.
+    ///     - prvKey: The private key to use.
+    ///     - passphrase: The key passphrase to use - is no passphrase was set, pass a blank string.
     public init(hostname: String, port: Int, username: String,
          prvKey: String, passphrase: String) {
         
@@ -117,6 +147,7 @@ import NSString_iconv
     
     // MARK: - Connection, Authentication, Dicsonnection
     
+    /// Determine the server connectivity state.
     public var connected: Bool {
         if session != nil {
             return ssh_is_connected(session) == 1
@@ -124,10 +155,13 @@ import NSString_iconv
         return false
     }
     
+    /// Establish connection with the server.
+    /// - Throws: NSError on connection error.
     public func connect() throws {
         try _connect()
     }
     
+    /// Connect to the server.
     func _connect() throws {
         
         session = ssh_new()
@@ -191,6 +225,9 @@ import NSString_iconv
         }
     }
     
+    /// Authentucate on the server. Prior to calling this function, the connection to the server.
+    /// must be established.
+    /// - Throws: NSError on error.
     public func authenticate() throws {
         
         if session == nil {
@@ -201,6 +238,11 @@ import NSString_iconv
         try _sftpSession()
     }
     
+    /// Turns number representing an authentication methods (as returned by ssh_userauth_list())
+    /// to a list with these methods names.
+    ///  - Parameters:
+    ///     - supported: Number returned by ssh_userauth_list().
+    ///  - Returns: List of supported authentication methods names.
     func _intToAuthMethodsList(_ supported: UInt32) -> [String] {
         
         var methods = [String]()
@@ -229,6 +271,7 @@ import NSString_iconv
         return methods
     }
     
+    /// Authenticates the user.
     func _authenticate() throws {
         var auth: Int32;
         
@@ -293,6 +336,7 @@ import NSString_iconv
         }
     }
     
+    /// Authenticate the user with using the public key method.
     func _authenticatePublicKey() throws -> Int32 {
         
         var auth: Int32
@@ -326,6 +370,7 @@ import NSString_iconv
         return auth
     }
     
+    /// Authenticate the user with using the interactive method.
     func _authenticateInteractive() throws -> Int32 {
         
         var auth = ssh_userauth_kbdint(session, nil, nil)
@@ -348,6 +393,7 @@ import NSString_iconv
         return auth
     }
     
+    /// Create a new SFTP session.
     func _sftpSession() throws {
         
         sftp_session = sftp_new(session)
@@ -371,6 +417,7 @@ import NSString_iconv
         }
     }
     
+    /// Disconnect.
     public func disconnect() {
         
         if sftp_session != nil {
@@ -387,6 +434,7 @@ import NSString_iconv
     
     private var _timeout: Int = 0
     
+    /// Connection timeout in seconds.
     public var timeout: Int {
         get {
             return _timeout
@@ -399,7 +447,11 @@ import NSString_iconv
             }
         }
     }
-        
+     
+    /// Return the connection info. The connection must be established but does not have to
+    /// be authenticated.
+    /// - Returns: Connection info.
+    /// - Throws: NSError on error and also when the connection is not established.
     public func connectionInfo() throws -> MFTSftpConnectionInfo {
     
         if session == nil {
@@ -446,6 +498,13 @@ import NSString_iconv
     
     // MARK: - Directory listing and items info
     
+    /// Return the content of the given directory on the SFTP server. ".", ".." and items with names that cannot
+    /// be converted using the current encoding are skipped.
+    /// - Parameters:
+    ///     - path: Remote directory path.
+    ///     - maxItems: Limit for the number of items to returns,  0 = no limit.
+    /// - Returns: List of MFTSftpItem representing itemes on the given directory.
+    /// - Throws: NSError on error.
     public func contentsOfDirectory(atPath path: String, maxItems: Int64) throws -> [MFTSftpItem] {
         
         if sftp_session == nil {
@@ -519,6 +578,11 @@ import NSString_iconv
         return ret
     }
     
+    /// Returns information for the remote item at the given path.
+    /// - Parameters:
+    ///     - atPath: The remote item path.
+    /// - Returns: Temote item info.
+    /// - Throws: NSError on error (also when there is no item at the given path).
     public func infoForFile(atPath: String) throws -> MFTSftpItem {
         
         if sftp_session == nil {
@@ -579,6 +643,11 @@ import NSString_iconv
         }
     }
     
+    /// Resolve the target of the given symbolic link.
+    /// - Parameters:
+    ///     - path: Symbolic link path.
+    /// - Returns: The link target path.
+    /// - Throws: NSError on error, also when the path does not point to a symbolic link.
     public func effectiveTarget(forPath path:String) throws -> String {
         
         if sftp_session == nil {
@@ -602,6 +671,10 @@ import NSString_iconv
     
     // MARK: - Creating and removing
     
+    /// Create a new directory at the given path.
+    /// - Parameters:
+    ///     - path: The path of the folder to create.
+    /// - Throws: NSError on error.
     public func createDirectory(atPath path: String) throws {
         
         if sftp_session == nil {
@@ -616,6 +689,11 @@ import NSString_iconv
         }
     }
     
+    /// Create a new symbolic link.
+    /// - Parameters:
+    ///     - path: The path of the symbolic link to create.
+    ///     - destPath: The target of the symbolic link to create.
+    /// - Throws: NSError on error.
     public func createSymbolicLink(atPath path: String, withDestinationPath destPath:String) throws {
         
         if sftp_session == nil {
@@ -633,6 +711,10 @@ import NSString_iconv
         }
     }
 
+    /// Remote the directory at the given path.
+    /// - Parameters:
+    ///     - path: The path to remove.
+    /// - Throws: NSError on error.
     public func removeDirectory(atPath path: String) throws {
         
         if sftp_session == nil {
@@ -647,6 +729,10 @@ import NSString_iconv
         }
     }
     
+    /// Remote the file or the symbolic link at the given path.
+    /// - Parameters:
+    ///     - path: The path to remove.
+    /// - Throws: NSError on error.
     public func removeFile(atPath path: String) throws {
         
         if sftp_session == nil {
@@ -663,6 +749,14 @@ import NSString_iconv
     
     // MARK: - Download
     
+    /// Download the content of the file at the given path to the output stream.
+    /// - Parameters:
+    ///     - path: The path of the file to download.
+    ///     - outputStream: The output strem to use for storing donwloaded content - if the stream is closed, it will be opened.
+    ///     - pos: Starting position in the source file to download - if >0, the outputStram must be create for appending.
+    ///     - progress: Progress report callback - its two arguments are used to download bytes counter (including skipped bytes)
+    ///     and the size of the file to download. The return value false can be used to abort the operation.
+    /// - Throws: NSError on error.
     public func contents(atPath path: String, toStream outputStream:OutputStream, fromPosition pos:UInt64,
                   progress:((UInt64, UInt64) -> (Bool))?) throws {
         
@@ -725,6 +819,14 @@ import NSString_iconv
 
     // MARK: - Upload
     
+    /// Upload the content of the given input stream to the remove file at path.
+    /// - Parameters:
+    ///     - inputStream: The source of data to upload.
+    ///     - path: The path of the file to upload to.
+    ///     - append: Should the upload append to the file.
+    ///     - progress: Progress report callback - its argument represents uploaded bytes counter (including skipped bytes).
+    ///     The return value false can be used to abort the operation.
+    /// - Throws: NSError on error.
     public func write(stream inputStream: InputStream, toFileAtPath path: String, append:Bool,
                       progress:((UInt64) -> (Bool))?) throws {
         
@@ -772,6 +874,7 @@ import NSString_iconv
         }
     }
     
+    /// Write the content of the given input stream to the SFTP file handle.
     func _write(stream inputStream: InputStream, toFileHandle file:sftp_file, progressStartsFrom: UInt64,
                 progress:((UInt64) -> (Bool))?) throws {
             
@@ -806,6 +909,13 @@ import NSString_iconv
     }
     // MARK: - Copy
     
+    /// Copy the item to a new path of the SFTP server.
+    /// - Parameters:
+    ///     - fromPath: Source path (on the server).
+    ///     - toPath: Destination path (on the server).
+    ///     - parogress: Progress report callback - its two arguments are used to copied bytes counter
+    ///     and the size of the file to copy. The return value false can be used to abort the operation.
+    /// - Throws: NSError on error.
     public func copyItem(atPath fromPath: String, toFileAtPath toPath:String, progress:((UInt64, UInt64) -> (Bool))?) throws {
         
         if sftp_session == nil {
@@ -869,6 +979,12 @@ import NSString_iconv
     
     // MARK: - Move/rename
     
+    /// Move the item to a new path on the SFTP server. The operation is performed on the server without
+    /// downloading/uploading the file data.
+    /// - Parameters:
+    ///     - atPath: The current path of the item to move.
+    ///     - toPath: The the path of the item.
+    /// - Throws: NSError on error.
     public func moveItem(atPath: String, toPath:String) throws {
         
         if sftp_session == nil {
@@ -888,6 +1004,12 @@ import NSString_iconv
 
     // MARK: - Setting attributes
     
+    /// Set modification and access time of the remote item.
+    /// - Parameters:
+    ///     - mtime: Modification time to set.
+    ///     - atime: Access time to set.
+    ///     - path: The item path.
+    /// - Throws: NSError on error.
     public func set(modificationTime mtime:Date?, accessTime atime:Date?, forPath path:String) throws {
         
         if sftp_session == nil {
@@ -914,6 +1036,11 @@ import NSString_iconv
         }
     }
     
+    /// Set permissions for the given remote item.
+    /// - Parameters:
+    ///     - permissions: POSIX permissions to set.
+    ///     - path: The item path to set permissions.
+    /// - Throws: NSError on error.
     public func set(permissions:UInt32, forPath path:String) throws {
         
         if sftp_session == nil {
@@ -933,6 +1060,11 @@ import NSString_iconv
 
     // MARK: - Filesystem info
     
+    /// Returns file system info.
+    /// - Parameters:
+    ///     - path: The path of the item to return file system info for.
+    /// - Returns: File system info for the file system on which the given item resides.
+    /// - Throws: NSError on error.
     public func filesystemStats(forPath path: String) throws -> MFTFilesystemStats {
         
         if sftp_session == nil {
@@ -955,6 +1087,11 @@ import NSString_iconv
     
     // MARK: - Knownhost
     
+    /// Check is connected host is known based on hashes in the given file.
+    /// - Parameters:
+    ///     - path: The path of file with the known hosts hashes.
+    /// - Returns: One of MFTKnownHostStatus representing the status. Note, that this function does not throw an exception,
+    /// but instead in case when there is no connection it returns .NO_SESSION.
     public func knownHostStatus(inFile path:String) -> MFTKnownHostStatus {
      
         if session == nil {
@@ -971,6 +1108,10 @@ import NSString_iconv
         return MFTKnownHostStatus(rawValue: Int(res.rawValue)) ?? .KNOWN_HOSTS_UNKNOWN
     }
     
+    /// Add the hash of the connected host to the given file.
+    /// - Parameters:
+    ///     - path: The path of the file with known hosts hashes.
+    /// - Throws: NSError on error.
     public func addKnownHostName(toFile path: String) throws {
     
         if session == nil {
@@ -996,6 +1137,9 @@ import NSString_iconv
         }
     }
     
+    /// Returns the human readable fingerprint hash for the current connection.
+    /// - Returns: The fingerprint hash.
+    /// - Throws: NSError on error.
     public func fingerprintHash() throws -> String {
         
         if session == nil {
@@ -1023,17 +1167,13 @@ import NSString_iconv
     
     // MARK: - Auxilary convinience functions
     
-    public func resumeUploadFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
-        if FileManager.default.isReadableFile(atPath: path) == false {
-            throw error(code: .local_file_not_readable)
-        }
-        let istream = InputStream(fileAtPath: path)
-        if istream == nil {
-            throw error(code: .local_open_error_for_reading)
-        }
-        try write(stream: istream!, toFileAtPath: toFileAtPath, append: true, progress: progress)
-    }
-    
+    /// Upload the file at the given file to the remote file.
+    /// - Parameters:
+    ///     - path: The  source (local) file path.
+    ///     - toFileAtPath: The destination (remote) file path.
+    ///     - progress: Progress report callback - its argument represents uploaded bytes counter.
+    ///     The return value false can be used to abort the operation.
+    /// - Throws: NSError on error.
     public func uploadFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
         if FileManager.default.isReadableFile(atPath: path) == false {
             throw error(code: .local_file_not_readable)
@@ -1045,6 +1185,31 @@ import NSString_iconv
         try write(stream: istream!, toFileAtPath: toFileAtPath, append: false, progress: progress)
     }
     
+    /// Resume uploads of the file at the given file to the remote file.
+    /// - Parameters:
+    ///     - path: The  source (local) file path.
+    ///     - toFileAtPath: The destination (remote) file path.
+    ///     - progress: Progress report callback - its argument represents uploaded bytes counter (including skipped bytes).
+    ///     The return value false can be used to abort the operation.
+    /// - Throws: NSError on error.
+    public func resumeUploadFile(atPath path: String, toFileAtPath:String, progress:((UInt64) -> (Bool))?) throws {
+        if FileManager.default.isReadableFile(atPath: path) == false {
+            throw error(code: .local_file_not_readable)
+        }
+        let istream = InputStream(fileAtPath: path)
+        if istream == nil {
+            throw error(code: .local_open_error_for_reading)
+        }
+        try write(stream: istream!, toFileAtPath: toFileAtPath, append: true, progress: progress)
+    }
+    
+    /// Download the file at the given path to the local file.
+    /// - Parameters:
+    ///     - path: The source (remote) file path.
+    ///     - toFileAtPath: The destination (local) file path.
+    ///     - progress: Progress report callback - its two arguments are used to download bytes counter
+    ///     and the size of the file to download. The return value false can be used to abort the operation.
+    /// - Throws: NSError on error.
     public func downloadFile(atPath path: String, toFileAtPath:String,
                              progress:((UInt64, UInt64) -> (Bool))?) throws {
         if FileManager.default.isWritableFile(atPath: toFileAtPath) == false {
@@ -1057,6 +1222,13 @@ import NSString_iconv
         try contents(atPath: path, toStream: ostream!, fromPosition: 0, progress: progress)
     }
     
+    /// Resume download of the file at the given path to the local file.
+    /// - Parameters:
+    ///     - path: The source (remote) file path.
+    ///     - toFileAtPath: The destination (local) file path.
+    ///     - progress: Progress report callback - its two arguments are used to download bytes counter (including skipped bytes)
+    ///     and the size of the file to download. The return value false can be used to abort the operation.
+    /// - Throws: NSError on error.
     public func resumeDownloadFile(atPath path: String, toFileAtPath:String,
                              progress:((UInt64, UInt64) -> (Bool))?) throws {
         if FileManager.default.isWritableFile(atPath: toFileAtPath) == false {
@@ -1076,31 +1248,37 @@ import NSString_iconv
 
     // MARK: - Errors
     
+    /// Create and resurn SSH error based on the current session state.
     func error_ssh() -> NSError {
         let msg = String(cString: ssh_get_error(UnsafeMutableRawPointer(session!))!)
         let code = ssh_get_error_code(UnsafeMutableRawPointer(session!))
         return NSError(domain: "ssh", code: Int(code), userInfo: [NSLocalizedDescriptionKey: msg])
     }
     
+    /// Create and resurn SFTP error based on the current SFTP session state.
     func error_sftp() -> NSError {
         let msg = String(cString: ssh_get_error(UnsafeMutableRawPointer(session!))!)
         let code = sftp_get_error(sftp_session)
         return NSError(domain: "sftp", code: Int(code), userInfo: [NSLocalizedDescriptionKey: msg])
     }
     
+    /// Create and return MFT error with the given code and its default message.
     func error(code: MFTErrorCode) -> NSError {
         let msg = message(forError: code)
         return error(code: code, msg: msg)
     }
     
+    /// Create and return MFT error with the given code and message.
     func error(code: MFTErrorCode, msg: String) -> NSError {
         return NSError(domain: "mft", code: code.rawValue, userInfo: [NSLocalizedDescriptionKey: msg])
     }
     
+    /// Create and return MFT error for canceled operations.
     func errorCancelled() -> NSError {
         return error(code: .canceled)
     }
     
+    /// Get a message for the given MFT error.
     func message(forError error: MFTErrorCode) -> String {
         
         func NSLocalizedString(_ key: String, comment: String) -> String {
@@ -1160,6 +1338,7 @@ import NSString_iconv
     var convFromUtf8: iconv_t = iconv_t.init(bitPattern: -1)!
     var _encoding: String?
     
+    /// SFTP server characters encoding.
     public var encoding: String? {
         get {
             return _encoding
@@ -1184,6 +1363,7 @@ import NSString_iconv
         }
     }
     
+    /// Clean-up iconv handlers.
     func releaseIconv() {
         if convToUtf8 != convNil {
             iconv_close(convToUtf8)
@@ -1195,11 +1375,19 @@ import NSString_iconv
         convFromUtf8 = convNil
     }
     
+    /// Create and return C-style string with the selected encoding (in the 'encoding' property) for the given string.
+    /// - Parameters:
+    ///     s: String to convert.
+    /// - Returns: Converted string in the buffer. The buffer must be released by the called by calling its .deallocate() method.
     func cString(for s: String) -> UnsafePointer<CChar> {
         let buf = UnsafeMutablePointer<CChar>.allocate(capacity: s.convBufSize())
         return (s as NSString).toBuf(buf, bufLenght: s.convBufSize(), iconvFromUtf8: convFromUtf8)
     }
     
+    /// Create a new string from the C-style string with the selected encoding (in the 'encoding' property).
+    /// - Parameters:
+    ///     - buf: C-style string (encoded).
+    /// - Returns: Converted string or nil if conversion fails (it happens when the string is not encoded with 'encoding').
     func stringWith(buf: UnsafePointer<CChar>) -> String? {
         return NSString(buf: buf, iconvToUtf8: convToUtf8) as String?
     }

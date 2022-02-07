@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// This class represents a single SFTP items - a directory, file or symbilic link.
 @objcMembers public class MFTSftpItem: NSObject {
     
     public let filename: String
