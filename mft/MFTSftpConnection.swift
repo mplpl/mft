@@ -7,8 +7,8 @@
 //
 
 import Foundation
-import libssh
-import NSString_iconv
+@_implementationOnly import libssh
+@_implementationOnly import NSString_iconv
 
 /// Status of the hosts.
 @objc public enum MFTKnownHostStatus: Int {
