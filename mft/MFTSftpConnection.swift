@@ -75,7 +75,7 @@ import Foundation
     let prvKey: String
     let passphrase: String
     
-    let bufSize = 0x8000
+    public let bufSize = 0xF000
     var sshUserauthNoneCalled = false
     var sshUserauthNoneResult: Int32 = 0
     
