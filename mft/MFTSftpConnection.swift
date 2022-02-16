@@ -1242,7 +1242,15 @@ import Foundation
     /// Create and resurn SFTP error based on the current SFTP session state.
     func error_sftp() -> NSError {
         let msg = String(cString: ssh_get_error(UnsafeMutableRawPointer(session!))!)
-        let code = sftp_get_error(sftp_session)
+        var code = sftp_get_error(sftp_session)
+        if code == 0 {
+            // fall-back to ssh errors
+            code = ssh_get_error_code(UnsafeMutableRawPointer(session!))
+            // let's not mix error ranges
+            if code != 0 {
+                code += 1000
+            }
+        }
         return NSError(domain: "sftp", code: Int(code), userInfo: [NSLocalizedDescriptionKey: msg])
     }
     
