@@ -12,14 +12,15 @@ import XCTest
 class mftTests: XCTestCase {
     
     var sftp: MFTSftpConnection!
+    var username = NSUserName()
 
     override func setUpWithError() throws {
         try FileManager.default.createDirectory(atPath: "/tmp/mft", withIntermediateDirectories: true, attributes: [:])
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
-                              port: 22,
-                              username: "mpl",
-                              prvKeyPath: "/Users/mpl/.ssh/id_rsa",
-                              passphrase: "")
+                                 port: 22,
+                                 username: self.username,
+                                 prvKeyPath: NSHomeDirectory() + "/.ssh/id_rsa",
+                                 passphrase: "")
         XCTAssertNoThrow(try sftp.connect())
         XCTAssertNoThrow(try sftp.authenticate())
     }
@@ -56,8 +57,8 @@ class mftTests: XCTestCase {
     func testConnectFailed() throws {
         sftp = MFTSftpConnection(hostname: "127.0.0.222",
                               port: 22,
-                              username: "mpl",
-                              prvKeyPath: "/Users/mpl/.ssh/id_rsaXXXX",
+                              username: self.username,
+                              prvKeyPath: NSHomeDirectory() + "/.ssh/id_rsaXXXX",
                               passphrase: "")
         XCTAssertThrowsError(try sftp.connect())
     }
@@ -65,8 +66,8 @@ class mftTests: XCTestCase {
     func testAuthFailed() throws {
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
-                              username: "mpl",
-                              prvKeyPath: "/Users/mpl/.ssh/id_rsaXXXX",
+                              username: self.username,
+                              prvKeyPath: NSHomeDirectory() + "/.ssh/id_rsaXXXX",
                               passphrase: "")
         XCTAssertNoThrow(try sftp.connect())
         XCTAssertThrowsError(try sftp.authenticate())
@@ -74,13 +75,13 @@ class mftTests: XCTestCase {
     
     func testAuthKeyPassphrase() throws {
         // for this test to work:
-        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/mpl/.ssh/id_rsa_pass
+        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/username/.ssh/id_rsa_pass
         // type 'test' when asked for passphrase
-        // ssh-copy-id -i /Users/mpl/.ssh/id_rsa_pass mpl@127.0.0.1
+        // ssh-copy-id -i /Users/username/.ssh/id_rsa_pass username@127.0.0.1
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
-                              username: "mpl",
-                              prvKeyPath: "/Users/mpl/.ssh/id_rsa_pass",
+                              username: self.username,
+                              prvKeyPath: NSHomeDirectory() + "/.ssh/id_rsa_pass",
                               passphrase: "test")
         XCTAssertNoThrow(try sftp.connect())
         XCTAssertNoThrow(try sftp.authenticate())
@@ -92,7 +93,7 @@ class mftTests: XCTestCase {
         
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
-                              username: "mpl",
+                              username: self.username,
                               prvKeyPath: testItem,
                               passphrase: "aaaa")
         XCTAssertNoThrow(try sftp.connect())
@@ -104,7 +105,7 @@ class mftTests: XCTestCase {
         
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
-                              username: "mpl",
+                              username: self.username,
                               prvKeyPath: testItem,
                               passphrase: "aaaa")
         XCTAssertNoThrow(try sftp.connect())
@@ -113,13 +114,13 @@ class mftTests: XCTestCase {
     
     func testAuthKeyPassphraseNoPassphraseGiven() throws {
         // for this test to work:
-        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/mpl/.ssh/id_rsa_pass
+        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/username/.ssh/id_rsa_pass
         // type 'test' when asked for passphrase
-        // ssh-copy-id -i /Users/mpl/.ssh/id_rsa_pass mpl@127.0.0.1
+        // ssh-copy-id -i /Users/username/.ssh/id_rsa_pass username@127.0.0.1
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
-                              username: "mpl",
-                              prvKeyPath: "/Users/mpl/.ssh/id_rsa_pass",
+                              username: self.username,
+                              prvKeyPath: NSHomeDirectory() + "/.ssh/id_rsa_pass",
                               passphrase: "")
         XCTAssertNoThrow(try sftp.connect())
         XCTAssertThrowsError(try sftp.authenticate())
@@ -127,13 +128,13 @@ class mftTests: XCTestCase {
     
     func testAuthKeyPassphraseWrongPassphrase() throws {
         // for this test to work:
-        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/mpl/.ssh/id_rsa_pass
+        // ssh-keygen ssh-keygen -C "foo@bar.baz” /Users/username/.ssh/id_rsa_pass
         // type 'test' when asked for passphrase
-        // ssh-copy-id -i /Users/mpl/.ssh/id_rsa_pass mpl@127.0.0.1
+        // ssh-copy-id -i /Users/username/.ssh/id_rsa_pass username@127.0.0.1
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
-                              username: "mpl",
-                              prvKeyPath: "/Users/mpl/.ssh/id_rsa_pass",
+                              username: self.username,
+                              prvKeyPath: NSHomeDirectory() + "/.ssh/id_rsa_pass",
                               passphrase: "aaaaa")
         XCTAssertNoThrow(try sftp.connect())
         XCTAssertThrowsError(try sftp.authenticate())
@@ -141,13 +142,13 @@ class mftTests: XCTestCase {
     
     func testAuthKeyEd25519() throws {
         // for this test to work:
-        // ssh-keygen ssh-keygen -t ed25519 -C "foo@bar.baz” /Users/mpl/.ssh/id_ed25519
+        // ssh-keygen ssh-keygen -t ed25519 -C "foo@bar.baz” /Users/username/.ssh/id_ed25519
         // type 'test' when asked for passphrase
-        // ssh-copy-id -i /Users/mpl/.ssh/id_ed25519 mpl@127.0.0.1
+        // ssh-copy-id -i /Users/username/.ssh/id_ed25519 username@127.0.0.1
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
-                              username: "mpl",
-                              prvKeyPath: "/Users/mpl/.ssh/id_ed25519",
+                              username: self.username,
+                              prvKeyPath: NSHomeDirectory() + "/.ssh/id_ed25519",
                               passphrase: "test")
         XCTAssertNoThrow(try sftp.connect())
         XCTAssertNoThrow(try sftp.authenticate())
@@ -407,23 +408,18 @@ class mftTests: XCTestCase {
     
     func testAuthWithPkInString() throws {
         
-        let pk = try String(contentsOfFile: "/Users/mpl/.ssh/id_rsa")
+        let pk = try String(contentsOfFile: NSHomeDirectory() + "/.ssh/id_rsa")
    
         sftp = MFTSftpConnection(hostname: "127.0.0.1",
                               port: 22,
-                              username: "mpl",
+                              username: self.username,
                               prvKey: pk,
                               passphrase: "")
         XCTAssertNoThrow(try sftp.connect())
         XCTAssertNoThrow(try sftp.authenticate())
         
     }
-    
-    func testTimeoutSet() throws {
-        sftp.timeout = 25
-        XCTAssert(sftp.timeout == 25)
-    }
-    
+        
     func testReadlink() throws {
         let testItemFile = "/tmp/mft/readlink_file"
         let testItemLink = "/tmp/mft/readlink_link"

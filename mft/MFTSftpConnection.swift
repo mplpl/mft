@@ -432,22 +432,6 @@ import Foundation
         }
     }
     
-    private var _timeout: Int = 0
-    
-    /// Connection timeout in seconds.
-    public var timeout: Int {
-        get {
-            return _timeout
-        }
-        set {
-            if session != nil {
-                var newValueM = newValue
-                ssh_options_set(session, SSH_OPTIONS_TIMEOUT, &newValueM)
-                _timeout = newValue
-            }
-        }
-    }
-     
     /// Return the connection info. The connection must be established but does not have to
     /// be authenticated.
     /// - Returns: Connection info.
