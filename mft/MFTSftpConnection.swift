@@ -595,6 +595,16 @@ import Foundation
         if let file = sftp_stat(sftp_session, pathC) {
             defer {sftp_attributes_free(file)}
             
+            var fullPath = path
+            if fullPath.hasPrefix("/") == false {
+                fullPath = try canonicalPath(forPath: fullPath)
+            }
+            
+            if fullPath.hasPrefix("/") == false {
+                // this should not happen
+                throw error(code: .file_not_found)
+            }
+            
             var ownerS = ""
             var groupS = ""
             
@@ -605,7 +615,7 @@ import Foundation
                 groupS = stringWith(buf: group) ?? ""
             }
             
-            let item = MFTSftpItem(name: path,
+            let item = MFTSftpItem(name: fullPath,
                                 size: file.pointee.size,
                                 uid: file.pointee.uid,
                                 gid: file.pointee.gid,
@@ -622,6 +632,32 @@ import Foundation
                                 isSymlink: file.pointee.type == SSH_FILEXFER_TYPE_SYMLINK,
                                 isSpecial: file.pointee.type == SSH_FILEXFER_TYPE_SPECIAL)
             return item
+        } else {
+            throw error_sftp()
+        }
+    }
+
+    /// Return canonical (absolute) path for the given path
+    /// - Parameters:
+    ///     - path: the path to canonicalize.
+    /// - Returns: The canonical path.
+    /// - Throws: NSError on error.
+    public func canonicalPath(forPath path:String) throws -> String {
+        
+        if sftp_session == nil {
+            throw error(code: .no_session)
+        }
+        
+        let pathC = cString(for: path)
+        defer {pathC.deallocate()}
+        
+        if let file = sftp_canonicalize_path(sftp_session, pathC) {
+            defer {ssh_string_free_char(file)}
+            if let n = stringWith(buf: file) {
+                return n
+            } else {
+                throw error(code: .file_not_found)
+            }
         } else {
             throw error_sftp()
         }
