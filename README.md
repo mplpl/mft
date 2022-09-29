@@ -4,6 +4,51 @@ Swift SFTP Client Framework
 The mft is a framework that makes it easy to access SFTP services from Swift as well as Objective-C. 
 It uses modern backend - libssh and OpenSSL - with all the security related features and algorithmes (like aes-gcm or chacha20-poly) and can be embedded in macOS (both x86 and arm64) and iOS/iPadOS apps.
 
+## Capabilities
+
+The mft framework has the following capabilities.
+
+### Connectivity
+* Using the following ciphers: chacha20-poly, aes-gcm, aes-ctr, aes-cbc, 3des-cbc 
+* Using the following MAC hashing: hmac-sha2-etm, hmac-sha1-etm, hmac-sha2, hmac-sha1
+* Using zlib compression
+* Support for password authentication
+* Support for public-key authentication
+* Simple support for interactive authentication (with only a password prompt)
+* Support for ed25519, ecdsa, rsa-sha2, ssh-rsa and ssh-dss public key algorithms
+* Support for SFTP servers with non-UTF-8 charset
+
+### Supported SFTP Operations
+* Browsing directories
+* Recognizing directories, files, and symbolic links
+* Creating directories
+* Creating symbolic links
+* Removing directories
+* Removing files
+* Removing symbolic links
+* Downloading files
+* Downloading files from the given position (resume download)
+* Uploading files
+* Uploading files with append to existing (resume upload)
+* Reporting progress of downloading/uploading
+* Copying items within the same SFTP server
+* Moving items within the same SFTP server
+* Renaming items
+* Setting modification and access timestamps for items
+* Setting POSIX permissions for items
+* Retrieving file system stats (total size and utilization)
+
+### Supported environments
+* macOS x86_64, 
+* macOS arm64, 
+* iOS arm64, 
+* iOS Simulator arm64, 
+* iOS Simulator x86_64
+
+### Supported programming languages
+* Swift
+* Objective-C
+
 ## Building mft framework
 
 The mft should be built into an xcframework, that can easily be embedded in Xcode projects. To do that:
