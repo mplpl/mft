@@ -49,6 +49,12 @@ The mft framework has the following capabilities.
 * Swift
 * Objective-C
 
+## Bundled components
+
+The mft framework bundles the compiled versions of the following open source libraries:
+* libssh 0.9.6
+* openssl 1.1.1m
+
 ## Building mft framework
 
 The mft should be built into an xcframework, that can easily be embedded in Xcode projects. To do that:
