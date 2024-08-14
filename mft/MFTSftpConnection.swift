@@ -3,7 +3,7 @@
 //  mft
 //
 //  Created by Marcin Labenski on 28/01/2022.
-//  Copyright © 2022 Marcin Labenski. All rights reserved.
+//  Copyright © 2022-2024 Marcin Labenski. All rights reserved.
 //
 
 import Foundation
@@ -57,6 +57,10 @@ import Foundation
     public var kexAlg = ""
     public var authMethods = [String]()
     public var protocolVerions: Int32 = -1
+    public var maxOpenHandles: UInt64 = 0
+    public var maxPacketLenght: UInt64 = 0
+    public var maxReadLenght: UInt64 = 0
+    public var maxWriteLenght: UInt64 = 0
 }
 
 /// The class represents a single SFTP connection. It contains method for establishing connections,
@@ -477,6 +481,14 @@ import Foundation
         
         ret.protocolVerions = ssh_get_version(session)
         
+        if let lim = sftp_limits(sftp_session) {
+            ret.maxOpenHandles = lim.pointee.max_open_handles
+            ret.maxPacketLenght = lim.pointee.max_packet_length
+            ret.maxReadLenght = lim.pointee.max_read_length
+            ret.maxWriteLenght = lim.pointee.max_write_length
+            sftp_limits_free(lim)
+        }
+        
         return ret;
     }
     
@@ -801,36 +813,75 @@ import Foundation
             
             let fileInfo = try infoForFile(atPath: path)
             
-            var totalReadCount: UInt64 = pos
-            
-            let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
-            defer { buf.deallocate() }
-            var readCount = sftp_read(file, buf, bufSize)
-            while readCount > 0 {
-                
-                var writeCountLeft = readCount
-                var writeCount = 1
-                var ptr: Int = 0
-                while writeCountLeft > 0 && writeCount > 0 {
-                    writeCount = outputStream.write(buf + ptr, maxLength: writeCountLeft)
-                    writeCountLeft -= writeCount > 0 ? writeCount : 0
-                    ptr += writeCount
+            var rqCount = 20
+            var chunkSize: UInt64 = 0xF000
+            if let lim = sftp_limits(sftp_session) {
+                chunkSize = lim.pointee.max_read_length
+                if lim.pointee.max_open_handles > 0 {
+                    rqCount = min(rqCount, Int(lim.pointee.max_open_handles))
                 }
-                
-                if writeCount < 0 || (writeCount == 0 && writeCountLeft > 0) {
-                    throw error(code: .local_write_error)
-                }
-                
-                totalReadCount += UInt64(readCount)
-                if progress != nil && progress!(totalReadCount, fileInfo.size) == false {
-                    throw errorCancelled()
-                }
-                            
-                readCount = sftp_read(file, buf, bufSize)
+                sftp_limits_free(lim)
             }
             
-            if readCount < 0 {
-                throw error_sftp()
+            let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(chunkSize))
+            defer { buf.deallocate() }
+            var q = [UnsafeMutablePointer<sftp_aio?>]()
+            defer {
+                while q.count > 0 {
+                    let aioh = q.removeFirst()
+                    sftp_aio_free(aioh.pointee)
+                }
+            }
+            
+            var totalReadCount = pos
+            var totalWriteCount = pos
+            for _ in 0..<rqCount {
+                let aioh = UnsafeMutablePointer<sftp_aio?>.allocate(capacity: 1)
+                let readCount = sftp_aio_begin_read(file, Int(chunkSize), aioh)
+                q.append(aioh)
+                totalReadCount += UInt64(readCount)
+                if totalReadCount >= fileInfo.size {
+                    break
+                }
+            }
+            
+            while q.count > 0 {
+                let aioh = q.removeFirst()
+                var readCount = sftp_aio_wait_read(aioh, buf, Int(chunkSize))
+                if readCount > 0 {
+                    // write to a local file
+                    var writeCountLeft = readCount
+                    var writeCount = 1
+                    var ptr: Int = 0
+                    while writeCountLeft > 0 && writeCount > 0 {
+                        writeCount = outputStream.write(buf + ptr, maxLength: writeCountLeft)
+                        writeCountLeft -= writeCount > 0 ? writeCount : 0
+                        ptr += writeCount
+                    }
+                    
+                    if writeCount < 0 || (writeCount == 0 && writeCountLeft > 0) {
+                        throw error(code: .local_write_error)
+                    }
+                    totalWriteCount += UInt64(readCount)
+                    if progress != nil && progress!(totalWriteCount, fileInfo.size) == false {
+                        throw errorCancelled()
+                    }
+                } else if readCount < 0 {
+                    throw error_sftp()
+                } else {
+                    // EOF
+                    break
+                }
+                
+                if totalReadCount < fileInfo.size {
+                    readCount = sftp_aio_begin_read(file, Int(chunkSize), aioh)
+                    if readCount > 0 {
+                        totalReadCount += UInt64(readCount)
+                        q.append(aioh)
+                    } else if readCount < 0 {
+                        throw error_sftp()
+                    }
+                }
             }
         } else {
             throw error_sftp()
@@ -897,36 +948,68 @@ import Foundation
     /// Write the content of the given input stream to the SFTP file handle.
     func _write(stream inputStream: InputStream, toFileHandle file:sftp_file, progressStartsFrom: UInt64,
                 progress:((UInt64) -> (Bool))?) throws {
-            
-        var totalWriteCount = progressStartsFrom
-        let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+          
+        var chunkSize: UInt64 = 0xF000
+        var rqCount = 20
+        if let lim = sftp_limits(sftp_session) {
+            chunkSize = lim.pointee.max_write_length
+            if lim.pointee.max_open_handles > 0 {
+                rqCount = min(rqCount, Int(lim.pointee.max_open_handles))
+            }
+            sftp_limits_free(lim)
+        }
+        
+        let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(chunkSize))
         defer { buf.deallocate() }
-        var readCount: Int = -1
-        while inputStream.hasBytesAvailable {
-            readCount = inputStream.read(buf, maxLength: bufSize)
-            if readCount > 0 {
-                var writeCount = 1
-                var writeCountLeft = readCount
-                var ptr: Int = 0
-                while writeCountLeft > 0 && writeCount > 0 {
-                    writeCount = sftp_write(file, buf + ptr, readCount)
-                    writeCountLeft -= writeCount > 0 ? writeCount : 0
-                    if writeCount > 0 {
-                        ptr += writeCount
-                        totalWriteCount += UInt64(writeCount)
-                        if progress != nil && progress!(totalWriteCount) == false {
-                            throw errorCancelled()
-                        }
-                    } else {
-                        throw error_sftp()
-                    }
-                }
+        var q = [UnsafeMutablePointer<sftp_aio?>]()
+        defer {
+            while q.count > 0 {
+                let aioh = q.removeFirst()
+                sftp_aio_free(aioh.pointee)
             }
         }
-        if readCount < 0 {
-            throw error(code: .local_read_error)
+        
+        for _ in 0..<rqCount {
+            let readCount = inputStream.read(buf, maxLength: Int(chunkSize))
+            if readCount > 0 {
+                let aioh = UnsafeMutablePointer<sftp_aio?>.allocate(capacity: 1)
+                let chunkSize = sftp_aio_begin_write(file, buf, min(Int(chunkSize), readCount) , aioh)
+                if chunkSize < 0 {
+                    throw error_sftp()
+                }
+                q.append(aioh)
+            } else if readCount < 0 {
+                throw error(code: .local_read_error)
+            } else {
+                break
+            }
+        }
+        var totalWriteCount = progressStartsFrom
+        while q.count > 0 {
+            let aioh = q.removeFirst()
+            let writeCount = sftp_aio_wait_write(aioh)
+            if writeCount > 0 {
+                totalWriteCount += UInt64(writeCount)
+                if progress != nil && progress!(totalWriteCount) == false {
+                    throw errorCancelled()
+                }
+            } else {
+                throw error_sftp()
+            }
+            let readCount = inputStream.read(buf, maxLength: Int(chunkSize))
+            if readCount > 0 {
+                let aioh = UnsafeMutablePointer<sftp_aio?>.allocate(capacity: 1)
+                let chunkSize = sftp_aio_begin_write(file, buf, min(Int(chunkSize), readCount), aioh)
+                if chunkSize < 0 {
+                    throw error_sftp()
+                } else if readCount < 0 {
+                    throw error(code: .local_read_error)
+                }
+                q.append(aioh)
+            }
         }
     }
+    
     // MARK: - Copy
     
     /// Copy the item to a new path of the SFTP server.
