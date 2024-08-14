@@ -391,7 +391,7 @@
 					"$(PROJECT_DIR)/libssh/lib_sim",
 					"$(PROJECT_DIR)/openssl/lib_sim",
 				);
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.1.0;
 				MODULEMAP_FILE = "";
 				OTHER_LDFLAGS = (
 					"-lcrypto",
@@ -445,7 +445,7 @@
 					"$(PROJECT_DIR)/libssh/lib_sim",
 					"$(PROJECT_DIR)/openssl/lib_sim",
 				);
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.1.0;
 				MODULEMAP_FILE = "";
 				OTHER_LDFLAGS = (
 					"-lcrypto",
@@ -626,7 +626,7 @@
 					"$(PROJECT_DIR)/libssh/lib_macos",
 					"$(PROJECT_DIR)/openssl/lib_macos",
 				);
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.1.0;
 				MODULEMAP_FILE = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mpl.mft;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -666,7 +666,7 @@
 					"$(PROJECT_DIR)/libssh/lib_macos",
 					"$(PROJECT_DIR)/openssl/lib_macos",
 				);
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.1.0;
 				MODULEMAP_FILE = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mpl.mft;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
