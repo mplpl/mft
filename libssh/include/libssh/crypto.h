@@ -86,9 +86,9 @@ enum ssh_key_exchange_e {
 
 enum ssh_cipher_e {
     SSH_NO_CIPHER=0,
-#ifdef WITH_BLOWFISH_CIPHER
+#ifdef HAVE_BLOWFISH
     SSH_BLOWFISH_CBC,
-#endif /* WITH_BLOWFISH_CIPHER */
+#endif /* HAVE_BLOWFISH */
     SSH_3DES_CBC,
     SSH_AES128_CBC,
     SSH_AES192_CBC,
@@ -111,7 +111,11 @@ struct ssh_crypto_struct {
 #endif /* WITH_GEX */
 #ifdef HAVE_ECDH
 #ifdef HAVE_OPENSSL_ECC
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
     EC_KEY *ecdh_privkey;
+#else
+    EVP_PKEY *ecdh_privkey;
+#endif /* OPENSSL_VERSION_NUMBER */
 #elif defined HAVE_GCRYPT_ECC
     gcry_sexp_t ecdh_privkey;
 #elif defined HAVE_LIBMBEDCRYPTO
@@ -208,10 +212,23 @@ struct ssh_cipher_struct {
     void (*cleanup)(struct ssh_cipher_struct *cipher);
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const struct ssh_cipher_struct *ssh_get_chacha20poly1305_cipher(void);
 int sshkdf_derive_key(struct ssh_crypto_struct *crypto,
                       unsigned char *key, size_t key_len,
-                      int key_type, unsigned char *output,
+                      uint8_t key_type, unsigned char *output,
                       size_t requested_len);
+
+int secure_memcmp(const void *s1, const void *s2, size_t n);
+#if defined(HAVE_LIBCRYPTO) && !defined(WITH_PKCS11_PROVIDER)
+ENGINE *pki_get_engine(void);
+#endif /* HAVE_LIBCRYPTO */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _CRYPTO_H_ */

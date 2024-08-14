@@ -29,6 +29,7 @@
 #ifndef _LIBSSH_PRIV_H
 #define _LIBSSH_PRIV_H
 
+#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,6 +46,14 @@
 #  error "no strtoull function found"
 # endif
 #endif /* !defined(HAVE_STRTOULL) */
+
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if !defined(HAVE_STRNDUP)
 char *strndup(const char *s, size_t n);
@@ -65,11 +74,6 @@ char *strndup(const char *s, size_t n);
 #endif
 
 #ifdef _WIN32
-
-/* Imitate define of inttypes.h */
-# ifndef PRIdS
-#  define PRIdS "Id"
-# endif
 
 # ifndef PRIu64
 #  if __WORDSIZE == 64
@@ -156,14 +160,29 @@ char *strndup(const char *s, size_t n);
 # endif /* _MSC_VER */
 
 struct timeval;
-int gettimeofday(struct timeval *__p, void *__t);
+int ssh_gettimeofday(struct timeval *__p, void *__t);
+
+#define gettimeofday ssh_gettimeofday
 
 #define _XCLOSESOCKET closesocket
+
+# ifdef HAVE_IO_H
+#  include <io.h>
+#  undef open
+#  define open _open
+#  undef close
+#  define close _close
+#  undef read
+#  define read _read
+#  undef write
+#  define write _write
+#  undef unlink
+#  define unlink _unlink
+# endif /* HAVE_IO_H */
 
 #else /* _WIN32 */
 
 #include <unistd.h>
-#define PRIdS "zd"
 
 #define _XCLOSESOCKET close
 
@@ -173,7 +192,15 @@ int gettimeofday(struct timeval *__p, void *__t);
 #include "libssh/callbacks.h"
 
 /* some constants */
-#ifndef MAX_PACKAT_LEN
+#ifndef PATH_MAX
+#ifdef MAX_PATH
+#define PATH_MAX MAX_PATH
+#else
+#define PATH_MAX 4096
+#endif
+#endif
+
+#ifndef MAX_PACKET_LEN
 #define MAX_PACKET_LEN 262144
 #endif
 #ifndef ERROR_BUFFERLEN
@@ -247,6 +274,10 @@ void ssh_log_common(struct ssh_common_struct *common,
                     const char *function,
                     const char *format, ...) PRINTF_ATTRIBUTE(4, 5);
 
+void _ssh_remove_legacy_log_cb(void);
+
+/* log.c */
+void _ssh_reset_log_cb(void);
 
 /* ERROR HANDLING */
 
@@ -281,6 +312,7 @@ int ssh_auth_reply_success(ssh_session session, int partial);
 /* client.c */
 
 int ssh_send_banner(ssh_session session, int is_server);
+void ssh_session_socket_close(ssh_session session);
 
 /* connect.c */
 socket_t ssh_connect_host_nonblocking(ssh_session session, const char *host,
@@ -296,8 +328,14 @@ int decompress_buffer(ssh_session session,ssh_buffer buf, size_t maxlen);
 
 /* match.c */
 int match_pattern_list(const char *string, const char *pattern,
-    unsigned int len, int dolower);
+    size_t len, int dolower);
 int match_hostname(const char *host, const char *pattern, unsigned int len);
+#ifndef _WIN32
+int match_cidr_address_list(const char *address,
+                            const char *addrlist,
+                            int sa_family);
+#endif
+int match_group(const char *group, const char *object);
 
 /* connector.c */
 int ssh_connector_set_event(ssh_connector connector, ssh_event event);
@@ -347,7 +385,7 @@ void explicit_bzero(void *s, size_t n);
 #define discard_const_p(type, ptr) ((type *)discard_const(ptr))
 
 /**
- * Get the argument cound of variadic arguments
+ * Get the argument count of variadic arguments
  */
 /*
  * Since MSVC 2010 there is a bug in passing __VA_ARGS__ to subsequent
@@ -425,5 +463,16 @@ void explicit_bzero(void *s, size_t n);
 void ssh_agent_state_free(void *data);
 
 bool is_ssh_initialized(void);
+
+#define SSH_ERRNO_MSG_MAX   1024
+char *ssh_strerror(int err_num, char *buf, size_t buflen);
+
+/** 55 defined options (5 bytes each) + terminator */
+#define SSH_TTY_MODES_MAX_BUFSIZE   (55 * 5 + 1)
+int encode_current_tty_opts(unsigned char *buf, size_t buflen);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _LIBSSH_PRIV_H */
