@@ -23,8 +23,10 @@
 		C13D168927A893F6009A99B7 /* libssh.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C13D168827A893F6009A99B7 /* libssh.a */; };
 		C13D169227A8941B009A99B7 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C13D169127A8941B009A99B7 /* libcrypto.a */; };
 		C13D169427A8941D009A99B7 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C13D169327A8941D009A99B7 /* libssl.a */; };
+		C1583B212C6E0F0600AE2E4E /* mftBenchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1583B202C6E0F0600AE2E4E /* mftBenchTests.swift */; };
+		C1583B232C6E10DB00AE2E4E /* String+md5.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1583B222C6E10DB00AE2E4E /* String+md5.swift */; };
 		C1D2B2C727A3EE09004D9ACE /* mft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1D2B2BC27A3EE09004D9ACE /* mft.framework */; };
-		C1D2B2CC27A3EE09004D9ACE /* mftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2B2CB27A3EE09004D9ACE /* mftTests.swift */; };
+		C1D2B2CC27A3EE09004D9ACE /* mftFunctionalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2B2CB27A3EE09004D9ACE /* mftFunctionalTests.swift */; };
 		C1D2B2CD27A3EE09004D9ACE /* mft.h in Headers */ = {isa = PBXBuildFile; fileRef = C1D2B2BF27A3EE09004D9ACE /* mft.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C1D2B2D727A3EE58004D9ACE /* MFTSftpConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2B2D627A3EE58004D9ACE /* MFTSftpConnection.swift */; };
 		C1D2B33127A42788004D9ACE /* MFTSftpItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2B33027A42788004D9ACE /* MFTSftpItem.swift */; };
@@ -56,12 +58,14 @@
 		C13D169327A8941D009A99B7 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = openssl/lib_macos/libssl.a; sourceTree = "<group>"; };
 		C13D169727A894BC009A99B7 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		C1583B042C6DDC2000AE2E4E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		C1583B202C6E0F0600AE2E4E /* mftBenchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mftBenchTests.swift; sourceTree = "<group>"; };
+		C1583B222C6E10DB00AE2E4E /* String+md5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+md5.swift"; sourceTree = "<group>"; };
 		C1719D7227BE50AC0030CB6E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C1719D7327BE50DB0030CB6E /* mft-ios-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "mft-ios-Info.plist"; sourceTree = "<group>"; };
 		C1D2B2BC27A3EE09004D9ACE /* mft.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = mft.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1D2B2BF27A3EE09004D9ACE /* mft.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mft.h; sourceTree = "<group>"; };
 		C1D2B2C627A3EE09004D9ACE /* mftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mftTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C1D2B2CB27A3EE09004D9ACE /* mftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mftTests.swift; sourceTree = "<group>"; };
+		C1D2B2CB27A3EE09004D9ACE /* mftFunctionalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mftFunctionalTests.swift; sourceTree = "<group>"; };
 		C1D2B2D627A3EE58004D9ACE /* MFTSftpConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MFTSftpConnection.swift; sourceTree = "<group>"; };
 		C1D2B2EC27A3F0A0004D9ACE /* libssh */ = {isa = PBXFileReference; lastKnownFileType = folder; path = libssh; sourceTree = "<group>"; };
 		C1D2B33027A42788004D9ACE /* MFTSftpItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MFTSftpItem.swift; sourceTree = "<group>"; };
@@ -142,7 +146,9 @@
 		C1D2B2CA27A3EE09004D9ACE /* mftTests */ = {
 			isa = PBXGroup;
 			children = (
-				C1D2B2CB27A3EE09004D9ACE /* mftTests.swift */,
+				C1D2B2CB27A3EE09004D9ACE /* mftFunctionalTests.swift */,
+				C1583B202C6E0F0600AE2E4E /* mftBenchTests.swift */,
+				C1583B222C6E10DB00AE2E4E /* String+md5.swift */,
 			);
 			path = mftTests;
 			sourceTree = "<group>";
@@ -331,7 +337,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C1D2B2CC27A3EE09004D9ACE /* mftTests.swift in Sources */,
+				C1583B212C6E0F0600AE2E4E /* mftBenchTests.swift in Sources */,
+				C1D2B2CC27A3EE09004D9ACE /* mftFunctionalTests.swift in Sources */,
+				C1583B232C6E10DB00AE2E4E /* String+md5.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

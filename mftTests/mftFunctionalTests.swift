@@ -1,5 +1,5 @@
 //
-//  mftTests.swift
+//  mftFunctionalTests.swift
 //  mftTests
 //
 //  Created by Marcin Labenski on 28/01/2022.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import mft
 
-class mftTests: XCTestCase {
+class mftFunctionalTests: XCTestCase {
     
     var sftp: MFTSftpConnection!
     var username = NSUserName()
@@ -27,25 +27,6 @@ class mftTests: XCTestCase {
 
     override func tearDownWithError() throws {
         try FileManager.default.removeItem(atPath: "/tmp/mft")
-    }
-    
-    func md5(forFileAtPath path: String) -> String {
-        
-        let pipe = Pipe()
-        let task = Process()
-        task.launchPath = "/sbin/md5"
-        task.arguments = ["-q", path]
-        task.standardOutput = pipe;
-        task.launch()
-        let fh = pipe.fileHandleForReading
-        let taskData = fh.readDataToEndOfFile()
-        let dataString = String(bytes: taskData, encoding: .utf8)
-        if let results = dataString?.components(separatedBy: "\n") {
-            if results.count > 0 {
-                return results[1]
-            }
-        }
-        return ""
     }
     
     func testConnect() throws {
@@ -173,33 +154,35 @@ class mftTests: XCTestCase {
 
     func testDownload() throws {
         let testItem = "/tmp/mft/download_test"
+        let srcItem = "/usr/bin/ssh"
         
         let outStream = OutputStream(toFileAtPath: testItem, append: false)
         XCTAssert(outStream != nil)
         
-        XCTAssertNoThrow(try sftp.contents(atPath: "/usr/bin/ssh", toStream: outStream!, fromPosition: 0) {
+        XCTAssertNoThrow(try sftp.contents(atPath: srcItem, toStream: outStream!, fromPosition: 0) {
             downloaded, total in
             
             NSLog("%d / %d", downloaded, total)
             return true
         })
         
-        let srcAttrs = try FileManager.default.attributesOfItem(atPath: "/usr/bin/ssh") as NSDictionary
+        let srcAttrs = try FileManager.default.attributesOfItem(atPath: srcItem) as NSDictionary
         let destAttrs = try FileManager.default.attributesOfItem(atPath: testItem) as NSDictionary
         
         XCTAssert(srcAttrs.fileSize() == destAttrs.fileSize())
-        XCTAssert(md5(forFileAtPath: testItem) == md5(forFileAtPath: "/usr/bin/ssh"))
+        XCTAssert(testItem.md5() == srcItem.md5())
     }
     
     func testDownloadWithResume() throws {
         let testItem = "/tmp/mft/downloadr_test"
+        let srcItem = "/usr/bin/ssh"
         
         let outStream2 = OutputStream(toFileAtPath: testItem, append: false)
         XCTAssert(outStream2 != nil)
         
-        let srcAttrs = try FileManager.default.attributesOfItem(atPath: "/usr/bin/ssh") as NSDictionary
+        let srcAttrs = try FileManager.default.attributesOfItem(atPath: srcItem) as NSDictionary
         
-        XCTAssertNoThrow(try sftp.contents(atPath: "/usr/bin/ssh", toStream: outStream2!, fromPosition: srcAttrs.fileSize() - 100) {
+        XCTAssertNoThrow(try sftp.contents(atPath: srcItem, toStream: outStream2!, fromPosition: srcAttrs.fileSize() - 100) {
             downloaded, total in
             
             NSLog("%d / %d", downloaded, total)
@@ -212,11 +195,12 @@ class mftTests: XCTestCase {
     
     func testUpload() throws {
         let testItem = "/tmp/mft/upload_test"
+        let srcItem = "/usr/bin/ssh"
      
-        let inStream = InputStream(fileAtPath: "/usr/bin/ssh")
+        let inStream = InputStream(fileAtPath: srcItem)
         XCTAssert(inStream != nil)
         
-        let srcAttrs = try FileManager.default.attributesOfItem(atPath: "/usr/bin/ssh") as NSDictionary
+        let srcAttrs = try FileManager.default.attributesOfItem(atPath: srcItem) as NSDictionary
         
         XCTAssertNoThrow(try sftp.write(stream: inStream!, toFileAtPath: testItem, append: false) { uploaded in
             NSLog("%d / %d", uploaded, srcAttrs.fileSize())
@@ -225,7 +209,7 @@ class mftTests: XCTestCase {
         
         let destAttrs = try FileManager.default.attributesOfItem(atPath: testItem) as NSDictionary
         XCTAssert(srcAttrs.fileSize() == destAttrs.fileSize())
-        XCTAssert(md5(forFileAtPath: testItem) == md5(forFileAtPath: "/usr/bin/ssh"))
+        XCTAssert(testItem.md5() == srcItem.md5())
     }
     
     func testMkdir() throws {
@@ -330,12 +314,17 @@ class mftTests: XCTestCase {
     func testCopy() throws {
         let testItemSrc = "/tmp/mft/copy_test_src"
         let testItemDest = "/tmp/mft/copy_test_dest"
-        let data = Data(repeating: 9, count: 2000000)
+        let data = Data(repeating: 9, count: 20000000)
         FileManager.default.createFile(atPath: testItemSrc, contents: data, attributes: [:])
         XCTAssertNoThrow(try sftp.copyItem(atPath: testItemSrc, toFileAtPath: testItemDest) { copied, total in
             NSLog("%d / %d", copied, total)
             return true
         })
+        let srcAttrs = try FileManager.default.attributesOfItem(atPath: testItemSrc) as NSDictionary
+        let destAttrs = try FileManager.default.attributesOfItem(atPath: testItemDest) as NSDictionary
+        
+        XCTAssert(srcAttrs.fileSize() == destAttrs.fileSize())
+        XCTAssert(testItemSrc.md5() == testItemDest.md5())
     }
     
     func testEncodingSet() throws {
@@ -450,7 +439,7 @@ class mftTests: XCTestCase {
         XCTAssert(uploadStartAt < 3000000) // ~ 2000000+bufferSize
         let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
         XCTAssert(attrs.fileSize() == 4000000)
-        XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
+        XCTAssert(testSrc.md5() == testDest.md5())
     }
     
     func testUploadOverwrite() throws {
@@ -472,7 +461,7 @@ class mftTests: XCTestCase {
         XCTAssert(uploadStartAt < 1000000) // ~ bufferSize
         let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
         XCTAssert(attrs.fileSize() == 4000000)
-        XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
+        XCTAssert(testSrc.md5() == testDest.md5())
     }
     
     func testDownloadResume() throws {
@@ -495,7 +484,7 @@ class mftTests: XCTestCase {
         XCTAssert(downloadStartAt < 3000000)  // ~ 2000000+bufferSize
         let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
         XCTAssert(attrs.fileSize() == 4000000)
-        XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
+        XCTAssert(testSrc.md5() == testDest.md5())
     }
     
     func testDownloadOverwrite() throws {
@@ -518,65 +507,6 @@ class mftTests: XCTestCase {
         XCTAssert(downloadStartAt < 1000000) // ~ bufferSize
         let attrs = try FileManager.default.attributesOfItem(atPath: testDest) as NSDictionary
         XCTAssert(attrs.fileSize() == 4000000)
-        XCTAssert(md5(forFileAtPath: testSrc) == md5(forFileAtPath: testDest))
-    }
-    
-    func testBenchDownload() throws {
-        let srcTestFile = "/tmp/mft/src_download_test_big"
-        let destTestFile = "/tmp/mft/dest_download_test_big"
-        let data = NSMutableData()
-        
-        data.length = 1024 * 1024 * 1024
-        try data.write(toFile: srcTestFile)
-        
-        let outStream = OutputStream(toFileAtPath: destTestFile, append: false)
-        XCTAssert(outStream != nil)
-        
-        let start = DispatchTime.now().uptimeNanoseconds
-            
-        XCTAssertNoThrow(try sftp.contents(atPath: srcTestFile, toStream: outStream!, fromPosition: 0) {
-            downloaded, total in
-            return true
-        })
-        
-        let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
-        let rate = Double(data.length) / elapsed / (1024*1024)
-        NSLog("Download time: %d s, speed %f MB/s", Int(elapsed) as Int, rate)
-        XCTAssert(rate > 200.0)
-        
-        let srcAttrs = try FileManager.default.attributesOfItem(atPath: srcTestFile) as NSDictionary
-        let destAttrs = try FileManager.default.attributesOfItem(atPath: destTestFile) as NSDictionary
-        
-        XCTAssert(srcAttrs.fileSize() == destAttrs.fileSize())
-        XCTAssert(md5(forFileAtPath: srcTestFile) == md5(forFileAtPath: destTestFile))
-    }
-    
-    func testBenchUpload() throws {
-        let srcTestFile = "/tmp/mft/src_upload_test_big"
-        let destTestFile = "/tmp/mft/dest_upload_test_big"
-        let data = NSMutableData()
-        
-        data.length = 1024 * 1024 * 1024
-        try data.write(toFile: srcTestFile)
-        
-        let inStream = InputStream(fileAtPath: srcTestFile)
-        XCTAssert(inStream != nil)
-        
-        let srcAttrs = try FileManager.default.attributesOfItem(atPath: srcTestFile) as NSDictionary
-        
-        let start = DispatchTime.now().uptimeNanoseconds
-        
-        XCTAssertNoThrow(try sftp.write(stream: inStream!, toFileAtPath: destTestFile, append: false) { uploaded in
-            return true
-        })
-        
-        let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
-        let rate = Double(data.length) / elapsed / (1024*1024)
-        NSLog("Upload time: %d s, speed %f MB/s", Int(elapsed) as Int, rate)
-        XCTAssert(rate > 200.0)
-        
-        let destAttrs = try FileManager.default.attributesOfItem(atPath: destTestFile) as NSDictionary
-        XCTAssert(srcAttrs.fileSize() == destAttrs.fileSize())
-        XCTAssert(md5(forFileAtPath: destTestFile) == md5(forFileAtPath: srcTestFile))
+        XCTAssert(testSrc.md5() == testDest.md5())
     }
 }

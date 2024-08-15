@@ -79,9 +79,10 @@ import Foundation
     let prvKey: String
     let passphrase: String
     
-    let bufSize = 0xF000
     var sshUserauthNoneCalled = false
     var sshUserauthNoneResult: Int32 = 0
+    public var defRqCount = 20
+    var defChunkSize: UInt64 = 0xF000
     
     private var session: ssh_session?
     private var sftp_session: sftp_session?
@@ -813,8 +814,8 @@ import Foundation
             
             let fileInfo = try infoForFile(atPath: path)
             
-            var rqCount = 20
-            var chunkSize: UInt64 = 0xF000
+            var rqCount = defRqCount
+            var chunkSize: UInt64 = defChunkSize
             if let lim = sftp_limits(sftp_session) {
                 chunkSize = lim.pointee.max_read_length
                 if lim.pointee.max_open_handles > 0 {
@@ -838,6 +839,9 @@ import Foundation
             for _ in 0..<rqCount {
                 let aioh = UnsafeMutablePointer<sftp_aio?>.allocate(capacity: 1)
                 let readCount = sftp_aio_begin_read(file, Int(chunkSize), aioh)
+                if readCount < 0 {
+                    throw error_sftp()
+                }
                 q.append(aioh)
                 totalReadCount += UInt64(readCount)
                 if totalReadCount >= fileInfo.size {
@@ -949,8 +953,8 @@ import Foundation
     func _write(stream inputStream: InputStream, toFileHandle file:sftp_file, progressStartsFrom: UInt64,
                 progress:((UInt64) -> (Bool))?) throws {
           
-        var chunkSize: UInt64 = 0xF000
-        var rqCount = 20
+        var chunkSize: UInt64 = defChunkSize
+        var rqCount = defRqCount
         if let lim = sftp_limits(sftp_session) {
             chunkSize = lim.pointee.max_write_length
             if lim.pointee.max_open_handles > 0 {
@@ -973,8 +977,7 @@ import Foundation
             let readCount = inputStream.read(buf, maxLength: Int(chunkSize))
             if readCount > 0 {
                 let aioh = UnsafeMutablePointer<sftp_aio?>.allocate(capacity: 1)
-                let chunkSize = sftp_aio_begin_write(file, buf, min(Int(chunkSize), readCount) , aioh)
-                if chunkSize < 0 {
+                if sftp_aio_begin_write(file, buf, min(Int(chunkSize), readCount) , aioh) < 0 {
                     throw error_sftp()
                 }
                 q.append(aioh)
@@ -998,14 +1001,13 @@ import Foundation
             }
             let readCount = inputStream.read(buf, maxLength: Int(chunkSize))
             if readCount > 0 {
-                let aioh = UnsafeMutablePointer<sftp_aio?>.allocate(capacity: 1)
                 let chunkSize = sftp_aio_begin_write(file, buf, min(Int(chunkSize), readCount), aioh)
                 if chunkSize < 0 {
                     throw error_sftp()
-                } else if readCount < 0 {
-                    throw error(code: .local_read_error)
                 }
                 q.append(aioh)
+            } else if readCount < 0 {
+                throw error(code: .local_read_error)
             }
         }
     }
@@ -1039,13 +1041,19 @@ import Foundation
                 
                 let file = try infoForFile(atPath: fromPath)
                 
+                var chunkSize: UInt64 = defChunkSize
+                if let lim = sftp_limits(sftp_session) {
+                    chunkSize = min(lim.pointee.max_read_length, lim.pointee.max_write_length)
+                    sftp_limits_free(lim)
+                }
+                
                 var totalReadCount: UInt64 = 0
                 var totalWriteCount: UInt64 = 0
                 
-                let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+                let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(chunkSize))
                 defer { buf.deallocate() }
                 
-                var readCount = sftp_read(fromFile, buf, bufSize)
+                var readCount = sftp_read(fromFile, buf, Int(chunkSize))
                 
                 while readCount > 0 {
                     
@@ -1070,7 +1078,7 @@ import Foundation
                         }
                     }
                     
-                    readCount = sftp_read(fromFile, buf, bufSize)
+                    readCount = sftp_read(fromFile, buf, Int(chunkSize))
                 }
                 
                 if readCount < 0 {
