@@ -55,6 +55,7 @@
 		C13D169127A8941B009A99B7 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = openssl/lib_macos/libcrypto.a; sourceTree = "<group>"; };
 		C13D169327A8941D009A99B7 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = openssl/lib_macos/libssl.a; sourceTree = "<group>"; };
 		C13D169727A894BC009A99B7 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		C1583B042C6DDC2000AE2E4E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		C1719D7227BE50AC0030CB6E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C1719D7327BE50DB0030CB6E /* mft-ios-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "mft-ios-Info.plist"; sourceTree = "<group>"; };
 		C1D2B2BC27A3EE09004D9ACE /* mft.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = mft.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -102,6 +103,7 @@
 		C1D2B2B227A3EE09004D9ACE = {
 			isa = PBXGroup;
 			children = (
+				C1583B042C6DDC2000AE2E4E /* README.md */,
 				C13D168C27A8940A009A99B7 /* openssl */,
 				C1D2B2EC27A3F0A0004D9ACE /* libssh */,
 				C1D2B2BE27A3EE09004D9ACE /* mft */,

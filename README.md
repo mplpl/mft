@@ -52,8 +52,8 @@ The mft framework has the following capabilities.
 ## Bundled components
 
 The mft framework bundles the compiled versions of the following open source libraries:
-* libssh 0.9.6
-* openssl 1.1.1m
+* libssh 0.11.0
+* openssl 3.3.1
 
 ## Building mft framework
 
