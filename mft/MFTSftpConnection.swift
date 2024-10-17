@@ -1377,8 +1377,11 @@ import Foundation
             if code != 0 {
                 code += 1000
             }
+            return NSError(domain: "sftp", code: Int(code), userInfo: [NSLocalizedDescriptionKey: msg])
+        } else {
+            let msg1 = message(forSftpError: code)
+            return NSError(domain: "sftp", code: Int(code), userInfo: [NSLocalizedDescriptionKey: msg + ": " + msg1])
         }
-        return NSError(domain: "sftp", code: Int(code), userInfo: [NSLocalizedDescriptionKey: msg])
     }
     
     /// Create and return MFT error with the given code and its default message.
@@ -1447,6 +1450,62 @@ import Foundation
             
         default:
             return NSLocalizedString("Error", comment: "")
+        }
+    }
+    
+    /// Get a message for the given SFTP error.
+    func message(forSftpError error: Int32) -> String {
+        
+        func NSLocalizedString(_ key: String, comment: String) -> String {
+            return Bundle(for: MFTSftpConnection.self).localizedString(forKey: key, value: "", table: nil)
+        }
+        
+        switch error {
+            
+        case SSH_FX_OK:
+            return NSLocalizedString("No error", comment: "")
+            
+        case SSH_FX_EOF:
+            return NSLocalizedString("No error", comment: "")
+            
+        case SSH_FX_NO_SUCH_FILE:
+            return NSLocalizedString("File doesn't exist", comment: "")
+            
+        case SSH_FX_PERMISSION_DENIED:
+            return NSLocalizedString("Permission denied ", comment: "")
+            
+        case SSH_FX_FAILURE:
+            return NSLocalizedString("Generic failure", comment: "")
+            
+        case SSH_FX_BAD_MESSAGE:
+            return NSLocalizedString("Garbage received from server", comment: "")
+            
+        case SSH_FX_NO_CONNECTION:
+            return NSLocalizedString("No connection has been set up", comment: "")
+            
+        case SSH_FX_CONNECTION_LOST:
+            return NSLocalizedString("There was a connection, but we lost it", comment: "")
+            
+        case SSH_FX_OP_UNSUPPORTED:
+            return NSLocalizedString("Operation not supported by the server", comment: "")
+            
+        case SSH_FX_INVALID_HANDLE:
+            return NSLocalizedString("Invalid file handle", comment: "")
+            
+        case SSH_FX_NO_SUCH_PATH:
+            return NSLocalizedString("No such file or directory path exists", comment: "")
+            
+        case SSH_FX_FILE_ALREADY_EXISTS:
+            return NSLocalizedString("An attempt to create an already existing file or directory has been made", comment: "")
+            
+        case SSH_FX_WRITE_PROTECT:
+            return NSLocalizedString("We are trying to write on a write-protected filesystem", comment: "")
+            
+        case SSH_FX_NO_MEDIA:
+            return NSLocalizedString("No media in remote drive", comment: "")
+            
+        default:
+            return NSLocalizedString("Unknown error", comment: "")
         }
     }
     
