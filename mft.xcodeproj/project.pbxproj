@@ -271,6 +271,7 @@
 				Base,
 				pl,
 				ru,
+				fr,
 			);
 			mainGroup = C1D2B2B227A3EE09004D9ACE;
 			productRefGroup = C1D2B2BD27A3EE09004D9ACE /* Products */;

@@ -2,7 +2,32 @@
   "sourceLanguage" : "en",
   "strings" : {
     "An attempt to create an already existing file or directory has been made" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es wurde versucht, eine bereits vorhandene Datei oder ein bereits vorhandenes Verzeichnis zu erstellen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une tentative de création d'un fichier ou d'un répertoire déjà existant a été effectuée"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podjęto próbę utworzenia już istniejącego pliku lub katalogu"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Была сделана попытка создать уже существующий файл или каталог."
+          }
+        }
+      }
     },
     "Authentication failed" : {
       "localizations" : {
@@ -10,6 +35,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Authentifizierung fehlgeschlagen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'authentification a échoué"
           }
         },
         "pl" : {
@@ -34,6 +65,12 @@
             "value" : "Authentifizierung fehlgeschlagen.Dieser Server unterstützt keine Kennwortauthentifizierung. Unterstützte Methoden: %@."
           }
         },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'authentification a échoué. Ce serveur ne prend pas en charge l'authentification par mot de passe. Méthodes prises en charge : %@."
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -54,6 +91,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Authentifizierung fehlgeschlagen. Dieser Server unterstützt keine Publickey-Authentifizierung. Unterstützte Methoden: %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'authentification a échoué. Ce serveur ne prend pas en charge l'authentification par clé publique. Méthodes prises en charge : %@."
           }
         },
         "pl" : {
@@ -78,6 +121,12 @@
             "value" : "Vorgang vom Benutzer abgebrochen"
           }
         },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulé"
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -100,6 +149,12 @@
             "value" : "Fehler"
           }
         },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur"
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -115,16 +170,116 @@
       }
     },
     "File doesn't exist" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei existiert nicht"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fichier n'existe pas"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plik nie istnieje"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл не существует"
+          }
+        }
+      }
     },
     "Garbage received from server" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vom Server empfangener Müll"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déchets reçus du serveur"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Śmieci otrzymane z serwera"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мусор получен с сервера"
+          }
+        }
+      }
     },
     "Generic failure" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allgemeiner Fehler"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Panne générique"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Błąd ogólny"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Общая неудача"
+          }
+        }
+      }
     },
     "Invalid file handle" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungültiger Datei-Handle"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Handle de fichier non valide"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nieprawidłowy uchwyt pliku"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неверный дескриптор файла"
+          }
+        }
+      }
     },
     "Item not found" : {
       "localizations" : {
@@ -132,6 +287,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Objekt nicht gefunden"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Article non trouvé"
           }
         },
         "pl" : {
@@ -149,13 +310,88 @@
       }
     },
     "No connection has been set up" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es wurde keine Verbindung hergestellt"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune connexion n'a été établie"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie nawiązano połączenia"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Соединение не установлено."
+          }
+        }
+      }
     },
     "No error" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Fehler"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune erreur"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak błędu"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет ошибки"
+          }
+        }
+      }
     },
     "No media in remote drive" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Medium im Remote-Laufwerk"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun média dans le lecteur distant"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak nośnika na dysku zdalnym"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет носителя на удаленном диске"
+          }
+        }
+      }
     },
     "No SFTP session" : {
       "localizations" : {
@@ -163,6 +399,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keine SFTP-Sitzung"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de session SFTP"
           }
         },
         "pl" : {
@@ -180,13 +422,88 @@
       }
     },
     "No such file or directory path exists" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine solche Datei oder ein solcher Verzeichnispfad ist nicht vorhanden."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun chemin de fichier ou de répertoire de ce type n'existe"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie istnieje taka ścieżka pliku ani katalogu"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Такого файла или пути к каталогу не существует."
+          }
+        }
+      }
     },
     "Operation not supported by the server" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorgang wird vom Server nicht unterstützt"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opération non prise en charge par le serveur"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operacja nie jest obsługiwana przez serwer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Операция не поддерживается сервером"
+          }
+        }
+      }
     },
     "Permission denied " : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zugriff verweigert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission refusée"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odmowa dostępu"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступ запрещен"
+          }
+        }
+      }
     },
     "Read error" : {
       "localizations" : {
@@ -194,6 +511,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lese fehler"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur de lecture"
           }
         },
         "pl" : {
@@ -211,7 +534,32 @@
       }
     },
     "There was a connection, but we lost it" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gab eine Verbindung, aber wir haben sie verloren"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il y avait une connexion, mais nous l'avons perdue"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Było połączenie, ale je straciliśmy"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Связь была, но мы ее потеряли"
+          }
+        }
+      }
     },
     "Unable to open the input stream" : {
       "localizations" : {
@@ -219,6 +567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Der Eingabestream kann nicht geöffnet werden"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'ouvrir le flux d'entrée"
           }
         },
         "pl" : {
@@ -243,6 +597,12 @@
             "value" : "Der Ausgabestream kann nicht geöffnet werden"
           }
         },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'ouvrir le flux de sortie"
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -258,10 +618,60 @@
       }
     },
     "Unknown error" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannter Fehler"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur inconnue"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nieznany błąd"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неизвестная ошибка"
+          }
+        }
+      }
     },
     "We are trying to write on a write-protected filesystem" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wir versuchen, auf ein schreibgeschütztes Dateisystem zu schreiben"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous essayons d'écrire sur un système de fichiers protégé en écriture"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próbujemy zapisywać na systemie plików chronionym przed zapisem"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мы пытаемся записать на защищенную от записи файловую систему."
+          }
+        }
+      }
     },
     "Write error" : {
       "localizations" : {
@@ -269,6 +679,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fehler beim Schreiben"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur d'écriture"
           }
         },
         "pl" : {
@@ -293,6 +709,12 @@
             "value" : "Falsches Schlüsseldateiformat oder falsche Passphrase"
           }
         },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format de fichier de clé incorrect ou phrase de passe incorrecte"
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -315,6 +737,12 @@
             "value" : "Sie sind nicht berechtigt, die Datei zu lesen"
           }
         },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous n'avez pas la permission de lire le fichier"
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -335,6 +763,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sie sind nicht berechtigt, die Datei zu schreiben"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous n'avez pas la permission d'écrire le fichier"
           }
         },
         "pl" : {
