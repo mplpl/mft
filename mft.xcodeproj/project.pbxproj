@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C10B3DCE27A6BBE100A19857 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = C10B3DCC27A6BBE100A19857 /* Localizable.strings */; };
 		C10B3E0B27A6EC7B00A19857 /* NSString+iconv.h in Headers */ = {isa = PBXBuildFile; fileRef = C10B3E0927A6EC7B00A19857 /* NSString+iconv.h */; };
 		C10B3E0C27A6EC7B00A19857 /* NSString+iconv.m in Sources */ = {isa = PBXBuildFile; fileRef = C10B3E0A27A6EC7B00A19857 /* NSString+iconv.m */; };
 		C10B3E0E27A6ECA900A19857 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C10B3E0D27A6EC9C00A19857 /* libiconv.tbd */; };
@@ -17,7 +16,8 @@
 		C10B3EB327A7D05200A19857 /* MFTSftpItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2B33027A42788004D9ACE /* MFTSftpItem.swift */; };
 		C10B3EB427A7D05200A19857 /* MFTSftpConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2B2D627A3EE58004D9ACE /* MFTSftpConnection.swift */; };
 		C10B3EB627A7D05200A19857 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C10B3E0D27A6EC9C00A19857 /* libiconv.tbd */; };
-		C10B3EB927A7D05200A19857 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = C10B3DCC27A6BBE100A19857 /* Localizable.strings */; };
+		C116CC2D2CC182200053B71A /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C116CC2C2CC182200053B71A /* Localizable.xcstrings */; };
+		C116CC2E2CC182200053B71A /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C116CC2C2CC182200053B71A /* Localizable.xcstrings */; };
 		C1246FDC27A96C5C000049BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C13D169727A894BC009A99B7 /* libz.tbd */; };
 		C1246FDE27A96E8B000049BF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C1246FDD27A96E86000049BF /* libz.tbd */; };
 		C13D168927A893F6009A99B7 /* libssh.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C13D168827A893F6009A99B7 /* libssh.a */; };
@@ -43,14 +43,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C10B3DCD27A6BBE100A19857 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Localizable.strings; sourceTree = "<group>"; };
-		C10B3DCF27A6BBE500A19857 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
-		C10B3DD027A6BBE700A19857 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C10B3E0927A6EC7B00A19857 /* NSString+iconv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+iconv.h"; sourceTree = "<group>"; };
 		C10B3E0A27A6EC7B00A19857 /* NSString+iconv.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+iconv.m"; sourceTree = "<group>"; };
 		C10B3E0D27A6EC9C00A19857 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		C10B3E3327A7006300A19857 /* module.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.map; sourceTree = "<group>"; };
 		C10B3EBF27A7D05200A19857 /* mft.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = mft.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C116CC2C2CC182200053B71A /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		C1246FDD27A96E86000049BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS15.2.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		C13D168827A893F6009A99B7 /* libssh.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssh.a; path = libssh/lib_macos/libssh.a; sourceTree = "<group>"; };
 		C13D168C27A8940A009A99B7 /* openssl */ = {isa = PBXFileReference; lastKnownFileType = folder; path = openssl; sourceTree = "<group>"; };
@@ -138,7 +136,7 @@
 				C10B3E0927A6EC7B00A19857 /* NSString+iconv.h */,
 				C10B3E0A27A6EC7B00A19857 /* NSString+iconv.m */,
 				C10B3E3327A7006300A19857 /* module.map */,
-				C10B3DCC27A6BBE100A19857 /* Localizable.strings */,
+				C116CC2C2CC182200053B71A /* Localizable.xcstrings */,
 			);
 			path = mft;
 			sourceTree = "<group>";
@@ -291,7 +289,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C10B3EB927A7D05200A19857 /* Localizable.strings in Resources */,
+				C116CC2E2CC182200053B71A /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -299,7 +297,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C10B3DCE27A6BBE100A19857 /* Localizable.strings in Resources */,
+				C116CC2D2CC182200053B71A /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,19 +350,6 @@
 			targetProxy = C1D2B2C827A3EE09004D9ACE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		C10B3DCC27A6BBE100A19857 /* Localizable.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				C10B3DCD27A6BBE100A19857 /* pl */,
-				C10B3DCF27A6BBE500A19857 /* de */,
-				C10B3DD027A6BBE700A19857 /* ru */,
-			);
-			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		C10B3EBD27A7D05200A19857 /* Debug */ = {
@@ -529,6 +514,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13.6;
 				MODULEMAP_FILE = "";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -536,6 +522,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = "libssh mft";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -593,12 +580,14 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13.6;
 				MODULEMAP_FILE = "";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = "libssh mft";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
