@@ -932,13 +932,22 @@ import Foundation
             
             var progressStartsFrom: UInt64 = 0
             if append {
-                let fileInfo = try infoForFile(atPath: path)
-                inputStream.setProperty(fileInfo.size, forKey: .fileCurrentOffsetKey)
-                if inputStream.hasBytesAvailable == false {
-                    throw error(code: .local_read_error)
+                do {
+                    let fileInfo = try infoForFile(atPath: path)
+                    inputStream.setProperty(fileInfo.size, forKey: .fileCurrentOffsetKey)
+                    if inputStream.hasBytesAvailable == false {
+                        throw error(code: .local_read_error)
+                    }
+                    sftp_seek64(file, fileInfo.size)
+                    progressStartsFrom = fileInfo.size
+                } catch let error as NSError {
+                    if error.domain == "sftp" && error.code == SSH_FX_NO_SUCH_FILE {
+                        // file not found may happen when it is not there for some servers even after sftp_open was called
+                        // here is basically mean that we have nothing to append to - no need to error exit
+                    } else {
+                        throw error
+                    }
                 }
-                sftp_seek64(file, fileInfo.size)
-                progressStartsFrom = fileInfo.size
             }
             
             try _write(stream: inputStream, toFileHandle: file, progressStartsFrom: progressStartsFrom,
