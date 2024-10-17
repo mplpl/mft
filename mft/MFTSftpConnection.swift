@@ -923,7 +923,7 @@ import Foundation
         }
         
         
-        var flags : Int32 = O_CREAT|O_RDWR;
+        var flags : Int32 = O_CREAT|O_WRONLY;
         if append == false {
             flags |= O_TRUNC
         }
