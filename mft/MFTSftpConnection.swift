@@ -78,6 +78,7 @@ import Foundation
     let prvKeyPath: String
     let prvKey: String
     let passphrase: String
+    let sshAgentSocketPath: String
     
     var sshUserauthNoneCalled = false
     var sshUserauthNoneResult: Int32 = 0
@@ -103,6 +104,7 @@ import Foundation
         self.prvKeyPath = ""
         self.prvKey = ""
         self.passphrase = ""
+        self.sshAgentSocketPath = ""
     }
     
     /// Create a new connection with public key based authentication data read from a file.
@@ -123,6 +125,7 @@ import Foundation
         
         self.prvKey = ""
         self.password = ""
+        self.sshAgentSocketPath = ""
     }
     
     /// Create a new connection with public key based authentication data read from a string.
@@ -141,6 +144,25 @@ import Foundation
         self.prvKey = prvKey
         self.passphrase = passphrase
         
+        self.prvKeyPath = ""
+        self.password = ""
+        self.sshAgentSocketPath = ""
+    }
+    
+    /// Create a new connection with ssh-agent based auth
+    /// - Parameters:
+    ///     - hostname: The SFTP server hostname.
+    ///     - port: The SFTP server port name.
+    ///     - username: The user name to authenticate as.
+    ///     - sshAgentSocketPath: Path to ssh-agent unix socket
+    public init(hostname: String, port: Int, username: String, sshAgentSocketPath: String) {
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.sshAgentSocketPath = sshAgentSocketPath
+        
+        self.prvKey = ""
+        self.passphrase = ""
         self.prvKeyPath = ""
         self.password = ""
     }
@@ -197,6 +219,16 @@ import Foundation
                 session = nil
             }
             throw error_ssh()
+        }
+        
+        if self.sshAgentSocketPath != "" {
+            if ssh_options_set(session, SSH_OPTIONS_IDENTITY_AGENT, self.sshAgentSocketPath) < 0 {
+                defer {
+                    ssh_free(session)
+                    session = nil
+                }
+                throw error_ssh()
+            }
         }
         
         var x: Int32 = 0
@@ -290,7 +322,9 @@ import Foundation
         }
         let supported = UInt32(ssh_userauth_list(session, nil))
         
-        if self.prvKeyPath != "" || self.prvKey != "" {
+        if self.sshAgentSocketPath != "" {
+            auth = ssh_userauth_agent(session, nil)
+        } else if self.prvKeyPath != "" || self.prvKey != "" {
             
             if supported & SSH_AUTH_METHOD_PUBLICKEY != 0 {
                 
