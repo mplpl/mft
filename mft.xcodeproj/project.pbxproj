@@ -30,6 +30,8 @@
 		C1D2B2CD27A3EE09004D9ACE /* mft.h in Headers */ = {isa = PBXBuildFile; fileRef = C1D2B2BF27A3EE09004D9ACE /* mft.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C1D2B2D727A3EE58004D9ACE /* MFTSftpConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2B2D627A3EE58004D9ACE /* MFTSftpConnection.swift */; };
 		C1D2B33127A42788004D9ACE /* MFTSftpItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2B33027A42788004D9ACE /* MFTSftpItem.swift */; };
+		C1E0728D2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C1E0728C2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy */; };
+		C1E0728E2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C1E0728C2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +69,7 @@
 		C1D2B2D627A3EE58004D9ACE /* MFTSftpConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MFTSftpConnection.swift; sourceTree = "<group>"; };
 		C1D2B2EC27A3F0A0004D9ACE /* libssh */ = {isa = PBXFileReference; lastKnownFileType = folder; path = libssh; sourceTree = "<group>"; };
 		C1D2B33027A42788004D9ACE /* MFTSftpItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MFTSftpItem.swift; sourceTree = "<group>"; };
+		C1E0728C2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,6 +140,7 @@
 				C10B3E0A27A6EC7B00A19857 /* NSString+iconv.m */,
 				C10B3E3327A7006300A19857 /* module.map */,
 				C116CC2C2CC182200053B71A /* Localizable.xcstrings */,
+				C1E0728C2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy */,
 			);
 			path = mft;
 			sourceTree = "<group>";
@@ -290,6 +294,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1E0728E2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy in Resources */,
 				C116CC2E2CC182200053B71A /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -298,6 +303,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1E0728D2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy in Resources */,
 				C116CC2D2CC182200053B71A /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
