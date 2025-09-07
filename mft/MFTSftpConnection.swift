@@ -3,7 +3,7 @@
 //  mft
 //
 //  Created by Marcin Labenski on 28/01/2022.
-//  Copyright © 2022-2024 Marcin Labenski. All rights reserved.
+//  Copyright © 2022-2025 Marcin Labenski. All rights reserved.
 //
 
 import Foundation
@@ -851,7 +851,7 @@ import Foundation
             var rqCount = defRqCount
             var chunkSize: UInt64 = defChunkSize
             if let lim = sftp_limits(sftp_session) {
-                chunkSize = lim.pointee.max_read_length
+                chunkSize = min(102400, lim.pointee.max_read_length)
                 if lim.pointee.max_open_handles > 0 {
                     rqCount = min(rqCount, Int(lim.pointee.max_open_handles))
                 }
@@ -877,16 +877,13 @@ import Foundation
                     throw error_sftp()
                 }
                 q.append(aioh)
-                totalReadCount += UInt64(readCount)
-                if totalReadCount >= fileInfo.size {
-                    break
-                }
             }
             
             while q.count > 0 {
                 let aioh = q.removeFirst()
-                var readCount = sftp_aio_wait_read(aioh, buf, Int(chunkSize))
+                let readCount = sftp_aio_wait_read(aioh, buf, Int(chunkSize))
                 if readCount > 0 {
+                    totalReadCount += UInt64(readCount)
                     // write to a local file
                     var writeCountLeft = readCount
                     var writeCount = 1
@@ -912,9 +909,8 @@ import Foundation
                 }
                 
                 if totalReadCount < fileInfo.size {
-                    readCount = sftp_aio_begin_read(file, Int(chunkSize), aioh)
+                    let readCount = sftp_aio_begin_read(file, Int(chunkSize), aioh)
                     if readCount > 0 {
-                        totalReadCount += UInt64(readCount)
                         q.append(aioh)
                     } else if readCount < 0 {
                         throw error_sftp()
