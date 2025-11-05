@@ -3,6 +3,7 @@ module libssh {
     header "include/libssh/sftp.h"
     header "include/libssh/misc.h"
     header "include/libssh/knownhosts.h"
+    header "include/libssh/server.h"
     export *
 }
 

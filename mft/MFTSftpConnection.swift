@@ -88,6 +88,10 @@ import Foundation
     private var session: ssh_session?
     private var sftp_session: sftp_session?
     
+    private var busy = 0
+    private var lastBusyEndTime: Date? = nil
+    private var keepAliveStarted = false
+    
     /// Create a new connection with password based authentication data.
     /// - Parameters:
     ///     - hostname: The SFTP server hostname.
@@ -273,6 +277,22 @@ import Foundation
         
         try _authenticate()
         try _sftpSession()
+    }
+    
+    /// Start sending keep alive messages
+    /// - Parameters:
+    ///     - keepAliveInterval: number of seconds between sending keep alive message, 0 = disable sending keep alive
+    /// - Throws: NSError on error.
+    public func keepalive(keepAliveIntrval: UInt32 = 0) throws {
+        if session == nil {
+            throw error(code: .no_session)
+        }
+        
+        if !keepAliveStarted {
+            _keepalive(interval: keepAliveIntrval)
+            keepAliveStarted = true
+        }
+        
     }
     
     /// Turns number representing an authentication methods (as returned by ssh_userauth_list())
@@ -481,6 +501,9 @@ import Foundation
             throw error(code: .no_session)
         }
         
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
+        
         let ret = MFTSftpConnectionInfo()
         
         if let sbanner = ssh_get_serverbanner(session) {
@@ -541,6 +564,9 @@ import Foundation
         if sftp_session == nil {
             throw error(code: .no_session)
         }
+        
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
         
         let pathC = cString(for: path)
         defer { pathC.deallocate() }
@@ -620,6 +646,9 @@ import Foundation
             throw error(code: .no_session)
         }
         
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
+        
         let path: String
         if atPath == "." {
             if let p = sftp_canonicalize_path(sftp_session, ".") {
@@ -695,6 +724,9 @@ import Foundation
             throw error(code: .no_session)
         }
         
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
+        
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
@@ -720,6 +752,9 @@ import Foundation
         if sftp_session == nil {
             throw error(code: .no_session)
         }
+        
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -748,6 +783,9 @@ import Foundation
             throw error(code: .no_session)
         }
         
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
+        
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
@@ -766,6 +804,9 @@ import Foundation
         if sftp_session == nil {
             throw error(code: .no_session)
         }
+        
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -788,6 +829,9 @@ import Foundation
             throw error(code: .no_session)
         }
         
+        busy += 1
+        defer { busy -= 1 ; lastBusyEndTime = Date() }
+        
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
@@ -805,6 +849,9 @@ import Foundation
         if sftp_session == nil {
             throw error(code: .no_session)
         }
+        
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -830,6 +877,9 @@ import Foundation
         if sftp_session == nil {
             throw error(code: .no_session)
         }
+        
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -938,6 +988,9 @@ import Foundation
         if sftp_session == nil {
             throw error(code: .no_session)
         }
+        
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -1066,6 +1119,9 @@ import Foundation
             throw error(code: .no_session)
         }
         
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
+        
         let fromPathC = cString(for: fromPath)
         defer {fromPathC.deallocate()}
         
@@ -1141,6 +1197,9 @@ import Foundation
             throw error(code: .no_session)
         }
         
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
+        
         let atPathC = cString(for: atPath)
         defer {atPathC.deallocate()}
         
@@ -1165,6 +1224,9 @@ import Foundation
         if sftp_session == nil {
             throw error(code: .no_session)
         }
+        
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -1197,6 +1259,9 @@ import Foundation
             throw error(code: .no_session)
         }
         
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
+        
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
         
@@ -1220,6 +1285,9 @@ import Foundation
         if sftp_session == nil {
             throw error(code: .no_session)
         }
+        
+        busy += 1
+        defer { busy -= 1; lastBusyEndTime = Date() }
         
         let pathC = cString(for: path)
         defer {pathC.deallocate()}
@@ -1607,5 +1675,21 @@ import Foundation
     /// - Returns: Converted string or nil if conversion fails (it happens when the string is not encoded with 'encoding').
     func stringWith(buf: UnsafePointer<CChar>) -> String? {
         return NSString(buf: buf, iconvToUtf8: convToUtf8) as String?
+    }
+    
+    func _keepalive(interval: UInt32) {
+        DispatchQueue.global().async {
+            while self.session != nil {
+                let session = self.session
+                if session != nil && self.busy == 0 && self.lastBusyEndTime != nil {
+                    let delta = Date().timeIntervalSinceReferenceDate - self.lastBusyEndTime!.timeIntervalSinceReferenceDate
+                    if delta > Double(interval) {
+                        ssh_send_keepalive(self.session)
+                        self.lastBusyEndTime = Date()
+                    }
+                }
+                sleep(5)
+            }
+        }
     }
 }
