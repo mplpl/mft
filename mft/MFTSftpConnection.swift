@@ -598,14 +598,23 @@ import Foundation
             }
         }
         
+        // Close the directory whichever way the loop ended. Throwing the
+        // not-at-eof error before closing would leak the handle opened by
+        // sftp_opendir, both here and on the server.
+        var pending: NSError?
+
         if limitReached == false && sftp_dir_eof(dir) == 0 {
-            throw error_sftp()
+            pending = error_sftp()
         }
 
-        if sftp_closedir(dir) != 0 {
-            throw error_sftp()
+        if sftp_closedir(dir) != 0 && pending == nil {
+            pending = error_sftp()
         }
-        
+
+        if let pending {
+            throw pending
+        }
+
         return ret
     }
     
