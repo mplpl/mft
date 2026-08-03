@@ -83,6 +83,10 @@ import Foundation
     var sshUserauthNoneCalled = false
     var sshUserauthNoneResult: Int32 = 0
     public var defRqCount = 20
+    /// Longest to wait while establishing the connection, in seconds. Left at
+    /// 0 libssh waits as long as the socket does, so a host that accepts the
+    /// connection and then says nothing never returns.
+    public var connectionTimeout: TimeInterval = 0
     var defChunkSize: UInt64 = 0xF000
     
     private var session: ssh_session?
@@ -221,6 +225,21 @@ import Foundation
             throw error_ssh()
         }
         
+        if connectionTimeout > 0 {
+            // libssh keeps the seconds and microseconds apart, and leaving one
+            // of them unset leaves that half at its default.
+            var timeoutSeconds = Int(connectionTimeout)
+            var timeoutMicroseconds = Int((connectionTimeout - TimeInterval(timeoutSeconds)) * 1_000_000)
+            if ssh_options_set(session, SSH_OPTIONS_TIMEOUT, &timeoutSeconds) < 0 ||
+                ssh_options_set(session, SSH_OPTIONS_TIMEOUT_USEC, &timeoutMicroseconds) < 0 {
+                defer {
+                    ssh_free(session)
+                    session = nil
+                }
+                throw error_ssh()
+            }
+        }
+
         if self.sshAgentSocketPath != "" {
             if ssh_options_set(session, SSH_OPTIONS_IDENTITY_AGENT, self.sshAgentSocketPath) < 0 {
                 defer {
