@@ -37,10 +37,11 @@ jobs:
           
       - name: Build XCFramework
         run: |
-          xcodebuild -create-xcframework -framework "${FPATH}/mft_ios.xcarchive/Products/Library/Frameworks/mft.framework" -framework "${FPATH}/mft_sim.xcarchive/Products/Library/Frameworks/mft.framework" -framework "${FPATH}/mft_macos.xcarchive/Products/Library/Frameworks/mft.framework" -output "${FPATH}/mft.xcframework"
+          xcodebuild -create-xcframework -framework "${FPATH}/mft_ios.xcarchive/Products/Library/Frameworks/mft.framework" -framework "${FPATH}/mft_sim.xcarchive/Products/Library/Frameworks/mft.framework" -framework "${FPATH}/mft_macos.xcarchive/Products/Library/Frameworks/mft.framework" -output "${FPATH}/out/mft.xcframework"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: mft
-          path: "${{ env.FPATH }}/mft.xcframework"
+          path: "${{ env.FPATH }}/out/mft.xcframework"
+          
