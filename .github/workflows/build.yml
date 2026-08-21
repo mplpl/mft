@@ -44,10 +44,14 @@ jobs:
           if [ $FPATH = FPATH ]; then FPATH=$(cat FPATH); fi
           xcodebuild archive  -scheme "mft" -destination "generic/platform=macOS" -archivePath "${FPATH}/mft_macos"  SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES
           
-      - name: Build for macOS
+      - name: Build XCFramework
         env:
           FPATH: ${{ 'FPATH' }}
         run: |
           if [ $FPATH = FPATH ]; then FPATH=$(cat FPATH); fi
           xcodebuild -create-xcframework -framework "${FPATH}/mft_ios.xcarchive/Products/Library/Frameworks/mft.framework" -framework "${FPATH}/mft_sim.xcarchive/Products/Library/Frameworks/mft.framework" -framework "${FPATH}/mft_macos.xcarchive/Products/Library/Frameworks/mft.framework" -output "${FPATH}/mft.xcframework"
-          
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mft
+          path: "${FPATH}/mft.xcframework"
