@@ -510,3 +510,87 @@ class mftFunctionalTests: XCTestCase {
         XCTAssert(testSrc.md5() == testDest.md5())
     }
 }
+
+// MARK: - Connection timeout
+
+/// Accepts the connection and never sends an SSH banner, which is the case
+/// connectionTimeout exists for: a host that is reachable but unresponsive.
+/// Refusing the connection instead would fail immediately and prove nothing.
+final class SilentSSHListener {
+    let port: UInt16
+    private var listenFD: Int32 = -1
+    private var stopping = false
+
+    init(port: UInt16) throws {
+        self.port = port
+        listenFD = socket(AF_INET, SOCK_STREAM, 0)
+        var yes: Int32 = 1
+        setsockopt(listenFD, SOL_SOCKET, SO_REUSEADDR, &yes, socklen_t(MemoryLayout<Int32>.size))
+
+        var address = sockaddr_in()
+        address.sin_family = sa_family_t(AF_INET)
+        address.sin_port = port.bigEndian
+        address.sin_addr.s_addr = inet_addr("127.0.0.1")
+        let bound = withUnsafePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                Darwin.bind(listenFD, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) == 0
+            }
+        }
+        guard bound, Darwin.listen(listenFD, 4) == 0 else {
+            throw NSError(domain: "SilentSSHListener", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "could not listen on \(port)"])
+        }
+
+        Thread.detachNewThread { [self] in
+            var held: [Int32] = []
+            while !stopping {
+                let client = Darwin.accept(listenFD, nil, nil)
+                if client < 0 { break }
+                held.append(client)   // kept open, and kept silent
+            }
+            held.forEach { close($0) }
+        }
+    }
+
+    func stop() {
+        stopping = true
+        if listenFD >= 0 { close(listenFD) }
+    }
+}
+
+final class mftConnectionTimeoutTests: XCTestCase {
+
+    func testConnectGivesUpOnAServerThatNeverAnswers() throws {
+        let listener = try SilentSSHListener(port: 2403)
+        defer { listener.stop() }
+
+        let sftp = MFTSftpConnection(hostname: "127.0.0.1",
+                                     port: Int(listener.port),
+                                     username: NSUserName(),
+                                     prvKeyPath: NSHomeDirectory() + "/.ssh/id_rsa",
+                                     passphrase: "")
+        sftp.connectionTimeout = 3
+
+        let finished = expectation(description: "connect returned")
+        var threw = false
+        var waited: TimeInterval = 0
+
+        DispatchQueue.global().async {
+            let started = Date()
+            do {
+                try sftp.connect()
+            } catch {
+                threw = true
+            }
+            waited = Date().timeIntervalSince(started)
+            finished.fulfill()
+        }
+
+        // Comfortably above the timeout, far below "hung": without the option
+        // set this never returns and the wait is what fails.
+        wait(for: [finished], timeout: 30)
+
+        XCTAssertTrue(threw, "connect returned instead of timing out")
+        XCTAssertLessThan(waited, 15, "took \(waited)s to give up on a silent server")
+    }
+}
