@@ -556,21 +556,41 @@ import Foundation
     /// - Returns: List of MFTSftpItem representing itemes on the given directory.
     /// - Throws: NSError on error.
     public func contentsOfDirectory(atPath path: String, maxItems: Int64) throws -> [MFTSftpItem] {
-        
+        var ret = [MFTSftpItem]()
+        try enumerateDirectory(atPath: path) { item in
+            ret.append(item)
+            return ret.count != maxItems // note that maxItems == 0 makes this check false
+        }
+        return ret
+    }
+
+    /// Enumerate the content of the given directory on the SFTP server, passing each item to a block
+    /// as it is read. ".", ".." and items with names that cannot be converted using the current
+    /// encoding are skipped.
+    ///
+    /// Unlike `contentsOfDirectory(atPath:maxItems:)` this does not build the whole listing, so the
+    /// memory it uses does not grow with the size of the directory. It also lets a caller stop as
+    /// soon as it has what it needs, rather than always reading the directory to the end.
+    /// - Parameters:
+    ///     - path: Remote directory path.
+    ///     - block: Called once per item, in the order the server reports them. Return false to stop
+    ///       reading; the directory is closed either way.
+    /// - Throws: NSError on error.
+    public func enumerateDirectory(atPath path: String, using block: (MFTSftpItem) -> Bool) throws {
+
         if sftp_session == nil {
             throw error(code: .no_session)
         }
-        
+
         let pathC = cString(for: path)
         defer { pathC.deallocate() }
         let dir = sftp_opendir(sftp_session, pathC)
         if dir == nil {
             throw error_sftp()
         }
-        
+
         var limitReached = false
-        var ret = [MFTSftpItem]()
-        
+
         while let file = sftp_readdir(sftp_session, dir) {
             defer {sftp_attributes_free(file)}
             
@@ -609,25 +629,31 @@ import Foundation
                                     isSymlink: file.pointee.type == SSH_FILEXFER_TYPE_SYMLINK,
                                     isSpecial: file.pointee.type == SSH_FILEXFER_TYPE_SPECIAL)
                 
-                ret.append(item)
-                if ret.count == maxItems { // note that maxItems == 0 makes this check false
+                if block(item) == false {
                     limitReached = true
                     break
                 }
             }
         }
         
+        // Close the directory whichever way the loop ended. Throwing the
+        // not-at-eof error before closing would leak the handle opened by
+        // sftp_opendir, both here and on the server.
+        var pending: NSError?
+
         if limitReached == false && sftp_dir_eof(dir) == 0 {
-            throw error_sftp()
+            pending = error_sftp()
         }
 
-        if sftp_closedir(dir) != 0 {
-            throw error_sftp()
+        if sftp_closedir(dir) != 0 && pending == nil {
+            pending = error_sftp()
         }
-        
-        return ret
+
+        if let pending {
+            throw pending
+        }
     }
-    
+
     /// Returns information for the remote item at the given path.
     /// - Parameters:
     ///     - atPath: The remote item path.
