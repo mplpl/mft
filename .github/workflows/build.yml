@@ -25,4 +25,6 @@ jobs:
         env:
           FPATH: ${{ 'FPATH' }}
         run: |
-          xcodebuild archive  -scheme "mft" -destination "generic/platform=macOS" -archivePath "${FPATH}/mft_macos"  SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES 
+          if [ $FPATH = FPATH ]; then FPATH=$(cat FPATH); fi
+          xcodebuild archive  -scheme "mft" -destination "generic/platform=macOS" -archivePath "${FPATH}/mft_macos"  SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+          
