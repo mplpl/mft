@@ -17,8 +17,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Prepare
         run: |
-          FPATH="../mft $(date +'%Y-%m-%d %H-%M-%S')"
+          FPATH="./mft $(date +'%Y-%m-%d %H-%M-%S')"
           echo $FPATH | cat >FPATH
+          echo Using build path: $FPATH
           mkdir "$FPATH"
       - name: Build
         env:
