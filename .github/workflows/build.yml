@@ -15,6 +15,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prepare
+        run: |
+          FPATH="../mft $(date +'%Y-%m-%d %H-%M-%S')"
+          echo $FPATH | cat >FPATH
+          mkdir "$FPATH"
       - name: Build
+        env:
+          FPATH: ${{ 'FPATH' }}
         run: |
           xcodebuild archive  -scheme "mft" -destination "generic/platform=macOS" -archivePath "${FPATH}/mft_macos"  SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES 
