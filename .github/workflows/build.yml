@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [ "ml_dev2" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "ml_dev2" ]
+    branches: [ "main" ]
   workflow_dispatch:
   
 jobs:
