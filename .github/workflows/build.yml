@@ -9,7 +9,7 @@ on:
   
 jobs:
   build:
-    name: Build for iOS
+    name: Build for macOS
     runs-on: macos-latest
 
     steps:
@@ -17,4 +17,4 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          xcodebuild archive  -scheme "mft ios" -destination "generic/platform=iOS" -archivePath "${FPATH}/mft_ios"  SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES    
+          xcodebuild archive  -scheme "mft" -destination "generic/platform=macOS" -archivePath "${FPATH}/mft_macos"  SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES 
