@@ -1,4 +1,7 @@
 # mft
+
+[![Build](https://github.com/mplpl/mft/actions/workflows/build.yml/badge.svg)](https://github.com/mplpl/mft/actions/workflows/build.yml)
+
 Swift SFTP Client Framework
 
 The mft is a framework that makes it easy to access SFTP services from Swift as well as Objective-C. 
