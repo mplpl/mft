@@ -1,0 +1,4 @@
+module NSString_iconv {
+    header "NSString+iconv.h"
+    export *
+}

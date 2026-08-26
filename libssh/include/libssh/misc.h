@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #endif /* _WIN32 */
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,8 +44,9 @@ extern "C" {
 
 /* in misc.c */
 /* gets the user home dir. */
-char *ssh_get_user_home_dir(void);
+char *ssh_get_user_home_dir(ssh_session session);
 char *ssh_get_local_username(void);
+char *ssh_get_local_hostname(void);
 int ssh_file_readaccess_ok(const char *file);
 int ssh_dir_writeable(const char *path);
 
@@ -69,6 +71,11 @@ struct ssh_iterator {
 struct ssh_jump_info_struct {
     char *hostname;
     char *username;
+    /**
+     * Port number of the jump host, in the range 1-65535. Zero means the
+     * ProxyJump specification did not give a port, in which case the jump
+     * host's own configuration (or the connection default) supplies it.
+     */
     int port;
 };
 
@@ -135,6 +142,8 @@ int ssh_check_username_syntax(const char *username);
 
 void ssh_proxyjumps_free(struct ssh_list *proxy_jump_list);
 bool ssh_libssh_proxy_jumps(void);
+
+FILE *ssh_strict_fopen(const char *filename, size_t max_file_size);
 
 #ifdef __cplusplus
 }

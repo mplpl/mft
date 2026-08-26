@@ -48,7 +48,7 @@
 		C10B3E0927A6EC7B00A19857 /* NSString+iconv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+iconv.h"; sourceTree = "<group>"; };
 		C10B3E0A27A6EC7B00A19857 /* NSString+iconv.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+iconv.m"; sourceTree = "<group>"; };
 		C10B3E0D27A6EC9C00A19857 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
-		C10B3E3327A7006300A19857 /* module.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.map; sourceTree = "<group>"; };
+		C10B3E3327A7006300A19857 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		C10B3EBF27A7D05200A19857 /* mft.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = mft.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C116CC2C2CC182200053B71A /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		C1246FDD27A96E86000049BF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS15.2.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
@@ -138,7 +138,7 @@
 				C1D2B33027A42788004D9ACE /* MFTSftpItem.swift */,
 				C10B3E0927A6EC7B00A19857 /* NSString+iconv.h */,
 				C10B3E0A27A6EC7B00A19857 /* NSString+iconv.m */,
-				C10B3E3327A7006300A19857 /* module.map */,
+				C10B3E3327A7006300A19857 /* module.modulemap */,
 				C116CC2C2CC182200053B71A /* Localizable.xcstrings */,
 				C1E0728C2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy */,
 			);

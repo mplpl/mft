@@ -29,6 +29,10 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+
+#include "libssh/libssh.h"
+#include "libssh/sftp.h"
+
 /**
  * @defgroup libssh_sftp_server The libssh SFTP server API
  *
@@ -39,6 +43,15 @@ extern "C" {
  * @{
  */
 
+/**
+ * @brief Macro to declare an SFTP message callback function.
+ *
+ * @param name  The name of the callback function to declare.
+ *
+ * @return SSH_OK for properly processed messages (including errors reported to
+ *         client over the channel and SSH_ERROR for protocol errors
+ *         that the channel callback should treat as fatal.
+ */
 #define SSH_SFTP_CALLBACK(name) \
     static int name(sftp_client_message message)
 
