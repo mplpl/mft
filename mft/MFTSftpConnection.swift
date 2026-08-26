@@ -83,6 +83,10 @@ import Foundation
     var sshUserauthNoneCalled = false
     var sshUserauthNoneResult: Int32 = 0
     public var defRqCount = 20
+    /// Longest to wait while establishing the connection, in seconds. Left at
+    /// 0 libssh waits as long as the socket does, so a host that accepts the
+    /// connection and then says nothing never returns.
+    public var connectionTimeout: TimeInterval = 0
     var defChunkSize: UInt64 = 0xF000
     
     private var session: ssh_session?
@@ -225,6 +229,21 @@ import Foundation
             throw error_ssh()
         }
         
+        if connectionTimeout > 0 {
+            // libssh keeps the seconds and microseconds apart, and leaving one
+            // of them unset leaves that half at its default.
+            var timeoutSeconds = Int(connectionTimeout)
+            var timeoutMicroseconds = Int((connectionTimeout - TimeInterval(timeoutSeconds)) * 1_000_000)
+            if ssh_options_set(session, SSH_OPTIONS_TIMEOUT, &timeoutSeconds) < 0 ||
+                ssh_options_set(session, SSH_OPTIONS_TIMEOUT_USEC, &timeoutMicroseconds) < 0 {
+                defer {
+                    ssh_free(session)
+                    session = nil
+                }
+                throw error_ssh()
+            }
+        }
+
         if self.sshAgentSocketPath != "" {
             if ssh_options_set(session, SSH_OPTIONS_IDENTITY_AGENT, self.sshAgentSocketPath) < 0 {
                 defer {
@@ -560,7 +579,28 @@ import Foundation
     /// - Returns: List of MFTSftpItem representing itemes on the given directory.
     /// - Throws: NSError on error.
     public func contentsOfDirectory(atPath path: String, maxItems: Int64) throws -> [MFTSftpItem] {
-        
+        var ret = [MFTSftpItem]()
+        try enumerateDirectory(atPath: path) { item in
+            ret.append(item)
+            return ret.count != maxItems // note that maxItems == 0 makes this check false
+        }
+        return ret
+    }
+
+    /// Enumerate the content of the given directory on the SFTP server, passing each item to a block
+    /// as it is read. ".", ".." and items with names that cannot be converted using the current
+    /// encoding are skipped.
+    ///
+    /// Unlike `contentsOfDirectory(atPath:maxItems:)` this does not build the whole listing, so the
+    /// memory it uses does not grow with the size of the directory. It also lets a caller stop as
+    /// soon as it has what it needs, rather than always reading the directory to the end.
+    /// - Parameters:
+    ///     - path: Remote directory path.
+    ///     - block: Called once per item, in the order the server reports them. Return false to stop
+    ///       reading; the directory is closed either way.
+    /// - Throws: NSError on error.
+    public func enumerateDirectory(atPath path: String, using block: (MFTSftpItem) -> Bool) throws {
+
         if sftp_session == nil {
             throw error(code: .no_session)
         }
@@ -574,10 +614,9 @@ import Foundation
         if dir == nil {
             throw error_sftp()
         }
-        
+
         var limitReached = false
-        var ret = [MFTSftpItem]()
-        
+
         while let file = sftp_readdir(sftp_session, dir) {
             defer {sftp_attributes_free(file)}
             
@@ -616,25 +655,31 @@ import Foundation
                                     isSymlink: file.pointee.type == SSH_FILEXFER_TYPE_SYMLINK,
                                     isSpecial: file.pointee.type == SSH_FILEXFER_TYPE_SPECIAL)
                 
-                ret.append(item)
-                if ret.count == maxItems { // note that maxItems == 0 makes this check false
+                if block(item) == false {
                     limitReached = true
                     break
                 }
             }
         }
         
+        // Close the directory whichever way the loop ended. Throwing the
+        // not-at-eof error before closing would leak the handle opened by
+        // sftp_opendir, both here and on the server.
+        var pending: NSError?
+
         if limitReached == false && sftp_dir_eof(dir) == 0 {
-            throw error_sftp()
+            pending = error_sftp()
         }
 
-        if sftp_closedir(dir) != 0 {
-            throw error_sftp()
+        if sftp_closedir(dir) != 0 && pending == nil {
+            pending = error_sftp()
         }
-        
-        return ret
+
+        if let pending {
+            throw pending
+        }
     }
-    
+
     /// Returns information for the remote item at the given path.
     /// - Parameters:
     ///     - atPath: The remote item path.
