@@ -302,13 +302,13 @@ import Foundation
     /// - Parameters:
     ///     - keepAliveInterval: number of seconds between sending keep alive message, 0 = disable sending keep alive
     /// - Throws: NSError on error.
-    public func keepalive(keepAliveIntrval: UInt32 = 0) throws {
+    public func keepalive(keepAliveInterval: UInt32 = 0) throws {
         if session == nil {
             throw error(code: .no_session)
         }
         
         if !keepAliveStarted {
-            _keepalive(interval: keepAliveIntrval)
+            _keepalive(interval: keepAliveInterval)
             keepAliveStarted = true
         }
         
