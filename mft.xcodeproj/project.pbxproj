@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		570DF26CE3885F940F090C90 /* MFTKeyGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19C24E153DFC07E24B3B2A85 /* MFTKeyGenerator.swift */; };
+		A7C81C84D7DA6BFD1E7B9CEE /* MFTKeyGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19C24E153DFC07E24B3B2A85 /* MFTKeyGenerator.swift */; };
 		C10B3E0B27A6EC7B00A19857 /* NSString+iconv.h in Headers */ = {isa = PBXBuildFile; fileRef = C10B3E0927A6EC7B00A19857 /* NSString+iconv.h */; };
 		C10B3E0C27A6EC7B00A19857 /* NSString+iconv.m in Sources */ = {isa = PBXBuildFile; fileRef = C10B3E0A27A6EC7B00A19857 /* NSString+iconv.m */; };
 		C10B3E0E27A6ECA900A19857 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C10B3E0D27A6EC9C00A19857 /* libiconv.tbd */; };
@@ -45,6 +47,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		19C24E153DFC07E24B3B2A85 /* MFTKeyGenerator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MFTKeyGenerator.swift; path = MFTKeyGenerator.swift; sourceTree = "<group>"; };
 		C10B3E0927A6EC7B00A19857 /* NSString+iconv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+iconv.h"; sourceTree = "<group>"; };
 		C10B3E0A27A6EC7B00A19857 /* NSString+iconv.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+iconv.m"; sourceTree = "<group>"; };
 		C10B3E0D27A6EC9C00A19857 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
@@ -141,6 +144,7 @@
 				C10B3E3327A7006300A19857 /* module.modulemap */,
 				C116CC2C2CC182200053B71A /* Localizable.xcstrings */,
 				C1E0728C2DCD2E0900FDADF5 /* PrivacyInfo.xcprivacy */,
+				19C24E153DFC07E24B3B2A85 /* MFTKeyGenerator.swift */,
 			);
 			path = mft;
 			sourceTree = "<group>";
@@ -335,6 +339,7 @@
 				C10B3EB227A7D05200A19857 /* NSString+iconv.m in Sources */,
 				C10B3EB327A7D05200A19857 /* MFTSftpItem.swift in Sources */,
 				C10B3EB427A7D05200A19857 /* MFTSftpConnection.swift in Sources */,
+				A7C81C84D7DA6BFD1E7B9CEE /* MFTKeyGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +350,7 @@
 				C10B3E0C27A6EC7B00A19857 /* NSString+iconv.m in Sources */,
 				C1D2B33127A42788004D9ACE /* MFTSftpItem.swift in Sources */,
 				C1D2B2D727A3EE58004D9ACE /* MFTSftpConnection.swift in Sources */,
+				570DF26CE3885F940F090C90 /* MFTKeyGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
